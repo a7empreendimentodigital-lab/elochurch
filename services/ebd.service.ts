@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { parseDateInput } from "@/lib/dates";
+import { parseDateInput, todayDateOnly } from "@/lib/dates";
 import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { resolveBibleReference } from "@/services/bible.service";
 import type { RelatorioDiarioEbd } from "@/types/ebd";
@@ -172,7 +172,7 @@ export async function addAluno(classeId: string, membroId: string) {
     throw new Error("Aluno já matriculado nesta classe");
   }
   return prisma.ebdAluno.create({
-    data: { classeId, membroId },
+    data: { classeId, membroId, matricula: todayDateOnly() },
     include: { membro: { select: { nomeCompleto: true, codigo: true } } },
   });
 }

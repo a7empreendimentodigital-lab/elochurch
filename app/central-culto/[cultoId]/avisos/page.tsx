@@ -1,7 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import { getCentralCultoState } from "@/services/central-culto.service";
-import { CULTO_AVISO_PRIORIDADE_LABEL } from "@/types/central-culto";
+import {
+  CULTO_AVISO_PRIORIDADE_BADGE_VARIANT,
+  CULTO_AVISO_PRIORIDADE_LABEL,
+} from "@/types/central-culto";
 import { EloCard } from "@/components/elo/elo-card";
 import { AvisoForm } from "@/components/central-culto/forms/aviso-form";
 import { AvisoDeleteButton } from "@/components/central-culto/central-item-delete-buttons";
@@ -10,13 +13,6 @@ import { Badge } from "@/components/ui/badge";
 interface PageProps {
   params: Promise<{ cultoId: string }>;
 }
-
-const prioridadeVariant = {
-  BAIXA: "secondary" as const,
-  MEDIA: "default" as const,
-  ALTA: "warning" as const,
-  URGENTE: "warning" as const,
-};
 
 export default async function AvisosPage({ params }: PageProps) {
   const { cultoId } = await params;
@@ -45,7 +41,7 @@ export default async function AvisosPage({ params }: PageProps) {
                 <div className="min-w-0 text-sm">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium">{a.titulo}</p>
-                    <Badge variant={prioridadeVariant[a.prioridade]}>
+                    <Badge variant={CULTO_AVISO_PRIORIDADE_BADGE_VARIANT[a.prioridade]}>
                       {CULTO_AVISO_PRIORIDADE_LABEL[a.prioridade]}
                     </Badge>
                   </div>

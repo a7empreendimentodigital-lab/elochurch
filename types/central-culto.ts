@@ -5,6 +5,14 @@ import type {
   CultoPedidoOrigem,
 } from "@prisma/client";
 
+export type CultoAvisoBadgeVariant =
+  | "default"
+  | "secondary"
+  | "outline"
+  | "success"
+  | "warning"
+  | "gold";
+
 export const CULTO_CENTRAL_STATUS_LABEL: Record<CultoCentralStatus, string> = {
   PREPARACAO: "Preparação",
   AO_VIVO: "Ao vivo",
@@ -16,6 +24,16 @@ export const CULTO_AVISO_PRIORIDADE_LABEL: Record<CultoAvisoPrioridade, string> 
   MEDIA: "Média",
   ALTA: "Alta",
   URGENTE: "Urgente",
+};
+
+export const CULTO_AVISO_PRIORIDADE_BADGE_VARIANT: Record<
+  CultoAvisoPrioridade,
+  CultoAvisoBadgeVariant
+> = {
+  BAIXA: "secondary",
+  MEDIA: "default",
+  ALTA: "warning",
+  URGENTE: "warning",
 };
 
 export const CULTO_PEDIDO_CATEGORIA_LABEL: Record<CultoPedidoCategoria, string> = {

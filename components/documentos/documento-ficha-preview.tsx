@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { DocumentoFichaModelo } from "@/types/documentos";
 import { FICHA_PAGE_HEIGHT_MM, FICHA_PAGE_WIDTH_MM } from "@/types/documentos";
 
@@ -31,12 +32,14 @@ export function DocumentoFichaPreview({ modelo }: DocumentoFichaPreviewProps) {
     >
       {/* Cabeçalho institucional — somente logo e contatos */}
       <header className="flex items-start justify-between gap-3 px-4 pt-3">
-        <div className="flex h-[18mm] min-w-[45mm] max-w-[70mm] flex-1 items-center">
+        <div className="relative flex h-[18mm] min-w-[45mm] max-w-[70mm] flex-1 items-center">
           {modelo.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={modelo.logoUrl}
               alt="Logo institucional"
+              width={280}
+              height={68}
+              unoptimized
               className="max-h-full max-w-full object-contain object-left"
             />
           ) : (
@@ -66,10 +69,12 @@ export function DocumentoFichaPreview({ modelo }: DocumentoFichaPreviewProps) {
         {/* Foto — canto superior direito do card */}
         <div className="absolute right-2 top-2 z-10 h-[34mm] w-[26mm] overflow-hidden rounded-md border border-gray-300 bg-gray-100">
           {modelo.fotoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={modelo.fotoUrl}
               alt={modelo.nomeMembro}
+              width={98}
+              height={128}
+              unoptimized
               className="h-full w-full object-cover"
             />
           ) : (

@@ -49,7 +49,6 @@ export function generateRelatorioPatrimonioPdf(
       margin: { left: 14, right: 14 },
       styles: { fontSize: 9 },
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     y = (doc.lastAutoTable?.finalY ?? y) + 10;
   }
 
@@ -73,7 +72,6 @@ export function generateRelatorioPatrimonioPdf(
       margin: { left: 14, right: 14 },
       styles: { fontSize: 8 },
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     y = (doc.lastAutoTable?.finalY ?? y) + 10;
   }
 

@@ -2,6 +2,7 @@
 
 import { formatDateBR } from "@/lib/dates";
 import {
+  CULTO_AVISO_PRIORIDADE_BADGE_VARIANT,
   CULTO_AVISO_PRIORIDADE_LABEL,
   CULTO_PEDIDO_CATEGORIA_LABEL,
   type CentralCultoState,
@@ -27,13 +28,6 @@ function decisaoLabel(d: CentralCultoState["decisoes"][0]) {
   if (d.transferencia) parts.push("Transferência");
   return parts.join(" · ") || "—";
 }
-
-const prioridadeVariant = {
-  BAIXA: "secondary" as const,
-  MEDIA: "default" as const,
-  ALTA: "warning" as const,
-  URGENTE: "warning" as const,
-};
 
 export function PainelPastor({ cultoId, initialState }: PainelPastorProps) {
   const { state, error } = useCentralCultoLive(cultoId, initialState, {
@@ -130,7 +124,7 @@ export function PainelPastor({ cultoId, initialState }: PainelPastorProps) {
                 >
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{a.titulo}</p>
-                    <Badge variant={prioridadeVariant[a.prioridade]}>
+                    <Badge variant={CULTO_AVISO_PRIORIDADE_BADGE_VARIANT[a.prioridade]}>
                       {CULTO_AVISO_PRIORIDADE_LABEL[a.prioridade]}
                     </Badge>
                   </div>

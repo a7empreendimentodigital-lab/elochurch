@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import type { ConfigBranding } from "@/lib/types/branding";
@@ -20,6 +21,14 @@ import { getIgrejaById, listSedes } from "@/services/igrejas.service";
 
 const CONFIG_ID = "default";
 
+function isPrismaUnavailableError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientInitializationError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError &&
+      (error.code === "P1001" || error.code === "P1017"))
+  );
+}
+
 type ConfigSistemaPatch = {
   cores?: Partial<ConfigSistemaDados["cores"]>;
   assinatura?: Partial<ConfigSistemaDados["assinatura"]>;
@@ -32,17 +41,24 @@ type ConfigSistemaPatch = {
 };
 
 async function readConfigSistemaFromDb(): Promise<ConfigSistemaDados> {
-  const row = await prisma.configSistema.findUnique({
-    where: { id: CONFIG_ID },
-  });
-  if (!row?.dados) {
-    return { ...DEFAULT_CONFIG_SISTEMA };
-  }
   try {
-    const parsed = JSON.parse(row.dados) as Partial<ConfigSistemaDados>;
-    return mergeConfig(DEFAULT_CONFIG_SISTEMA, parsed);
-  } catch {
-    return { ...DEFAULT_CONFIG_SISTEMA };
+    const row = await prisma.configSistema.findUnique({
+      where: { id: CONFIG_ID },
+    });
+    if (!row?.dados) {
+      return { ...DEFAULT_CONFIG_SISTEMA };
+    }
+    try {
+      const parsed = JSON.parse(row.dados) as Partial<ConfigSistemaDados>;
+      return mergeConfig(DEFAULT_CONFIG_SISTEMA, parsed);
+    } catch {
+      return { ...DEFAULT_CONFIG_SISTEMA };
+    }
+  } catch (error) {
+    if (isPrismaUnavailableError(error)) {
+      return { ...DEFAULT_CONFIG_SISTEMA };
+    }
+    throw error;
   }
 }
 

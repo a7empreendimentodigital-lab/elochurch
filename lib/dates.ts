@@ -1,3 +1,9 @@
+/** Data de hoje às 12:00 UTC (compatível com colunas @db.Date no MySQL). */
+export function todayDateOnly(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12, 0, 0));
+}
+
 /** Converte string yyyy-mm-dd ou vazio para Date ou null */
 export function parseDateInput(value?: string | null): Date | null {
   if (!value || value.trim() === "") return null;

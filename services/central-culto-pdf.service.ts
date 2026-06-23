@@ -70,7 +70,6 @@ export function generateRelatorioCentralCultoPdf(state: CentralCultoState): Buff
       margin: { left: 14, right: 14 },
       styles: { fontSize: 8 },
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     y = (doc.lastAutoTable?.finalY ?? y) + 8;
   };
 

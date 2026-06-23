@@ -289,7 +289,7 @@ model EbdAluno {
   classeId  String   @map("classe_id")
   membroId  String   @map("membro_id")
   ativo     Boolean  @default(true)
-  matricula DateTime @default(now()) @map("matricula")
+  matricula DateTime @map("matricula")
 
   classe    EbdClasse         @relation(fields: [classeId], references: [id], onDelete: Cascade)
   membro    Membro            @relation(fields: [membroId], references: [id], onDelete: Cascade)
