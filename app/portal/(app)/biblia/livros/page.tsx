@@ -2,17 +2,18 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import type { BibleBookListItem } from "@/types/bible";
 import { listBibleBooks } from "@/services/bible.service";
 
 export default async function PortalBibliaLivrosPage() {
   const books = await listBibleBooks();
-  const oldT = books.filter((b) => b.testament === "OLD");
-  const newT = books.filter((b) => b.testament === "NEW");
+  const oldT = books.filter((b: BibleBookListItem) => b.testament === "OLD");
+  const newT = books.filter((b: BibleBookListItem) => b.testament === "NEW");
   const base = "/portal/biblia";
 
-  const BookList = ({ items }: { items: typeof books }) => (
+  const BookList = ({ items }: { items: BibleBookListItem[] }) => (
     <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-      {items.map((b) => (
+      {items.map((b: BibleBookListItem) => (
         <li key={b.id}>
           <Link
             href={`${base}/livro/${b.id}`}

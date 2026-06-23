@@ -70,8 +70,7 @@ export function generateRelatorioDiarioPdf(relatorio: RelatorioDiarioEbd): Buffe
       margin: { left: 14, right: 14 },
       styles: { fontSize: 9 },
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    y = (doc as any).lastAutoTable.finalY + 8;
+    y = (doc.lastAutoTable?.finalY ?? y) + 8;
   }
 
   if (relatorio.faltosos.length > 0) {

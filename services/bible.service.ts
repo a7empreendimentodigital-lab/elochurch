@@ -4,15 +4,22 @@ import { parseBibleReference, formatBibleReference } from "@/lib/bible-reference
 import { findBookMetaByName } from "@/lib/bible-books";
 import type { BibleUserRef } from "@/lib/bible-user.server";
 import { bibleUserWhere } from "@/lib/bible-user.server";
+import type {
+  BibleBookListItem,
+  BibleBookWithChapters,
+  BibleFavoriteItem,
+  BibleHistoryItem,
+  BibleSearchResult,
+} from "@/types/bible";
 
-export async function listBibleBooks() {
+export async function listBibleBooks(): Promise<BibleBookListItem[]> {
   return prisma.bibleBook.findMany({
     orderBy: { position: "asc" },
     include: { _count: { select: { chapters: true } } },
   });
 }
 
-export async function getBibleBook(id: string) {
+export async function getBibleBook(id: string): Promise<BibleBookWithChapters | null> {
   return prisma.bibleBook.findUnique({
     where: { id },
     include: {
@@ -105,7 +112,7 @@ export async function resolveBibleReference(ref: string) {
   return { book, chapter, parsed };
 }
 
-export async function searchBible(query: string, limit = 40) {
+export async function searchBible(query: string, limit = 40): Promise<BibleSearchResult> {
   const q = query.trim();
   if (!q) return { type: "empty" as const, results: [] };
 
@@ -176,7 +183,10 @@ export async function recordBibleHistory(
   });
 }
 
-export async function listBibleHistory(user: BibleUserRef, limit = 20) {
+export async function listBibleHistory(
+  user: BibleUserRef,
+  limit = 20
+): Promise<BibleHistoryItem[]> {
   if (!user) return [];
   return prisma.bibleReadingHistory.findMany({
     where: bibleUserWhere(user),
@@ -203,7 +213,7 @@ export async function toggleBibleFavorite(user: BibleUserRef, verseId: string) {
   return { favorited: true };
 }
 
-export async function listBibleFavorites(user: BibleUserRef) {
+export async function listBibleFavorites(user: BibleUserRef): Promise<BibleFavoriteItem[]> {
   if (!user) return [];
   return prisma.bibleFavorite.findMany({
     where: bibleUserWhere(user),

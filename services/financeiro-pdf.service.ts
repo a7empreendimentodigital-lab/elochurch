@@ -72,7 +72,7 @@ export function generateRelatorioFinanceiroPdf(
       styles: { fontSize: 8 },
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    y = (doc as any).lastAutoTable.finalY + 8;
+    y = (doc.lastAutoTable?.finalY ?? y) + 8;
   };
 
   addSection(

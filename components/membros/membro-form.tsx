@@ -3,11 +3,12 @@
 import { useState, useTransition } from "react";
 import type { FocusEvent } from "react";
 import { useRouter } from "next/navigation";
+import { createZodFormResolver } from "@/lib/zod-form-resolver";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   membroFormSchema,
   type MembroFormInput,
+  type MembroFormValues,
 } from "@/lib/validations/membro.schema";
 import {
   ESTADO_CIVIL_LABEL,
@@ -95,9 +96,8 @@ export function MembroForm({
   const [cepLoading, setCepLoading] = useState(false);
   const [cepLookupError, setCepLookupError] = useState<string | null>(null);
 
-  const form = useForm<MembroFormInput>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(membroFormSchema as any),
+  const form = useForm<MembroFormValues, unknown, MembroFormInput>({
+    resolver: createZodFormResolver(membroFormSchema),
     defaultValues: {
       ...defaultFormValues,
       igrejaId: lockedIgrejaId ?? defaultIgrejaId ?? "",

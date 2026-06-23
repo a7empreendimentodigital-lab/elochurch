@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import type { BibleHistoryItem } from "@/types/bible";
 import { getBibleUserRef } from "@/lib/bible-user.server";
 import { listBibleHistory } from "@/services/bible.service";
 import { formatBibleReference } from "@/lib/bible-reference";
@@ -31,7 +32,7 @@ export default async function PortalBibliaHistoricoPage() {
               Nenhuma leitura registrada.
             </li>
           ) : (
-            history.map((h) => (
+            history.map((h: BibleHistoryItem) => (
               <li key={h.id} className="flex items-center justify-between gap-3 py-3">
                 <Link
                   href={`/portal/biblia/livro/${h.chapter.bookId}/${h.chapter.number}`}

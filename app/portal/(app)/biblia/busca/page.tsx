@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import type { BibleSearchResultItem } from "@/types/bible";
 import { searchBible } from "@/services/bible.service";
 import { EloCard } from "@/components/elo/elo-card";
 import { BibleSearchClient } from "@/components/bible/bible-search-client";
@@ -12,7 +13,7 @@ export default async function PortalBibliaBuscaPage({ searchParams }: PageProps)
   const { q = "" } = await searchParams;
   const search = q.trim() ? await searchBible(q) : null;
   const results =
-    search?.results.map((r) => ({
+    search?.results.map((r: BibleSearchResultItem) => ({
       label: r.label,
       excerpt: r.verse.content,
       href: `/portal/biblia/livro/${r.book.id}/${r.chapter}?v=${r.verse.verseNumber}`,

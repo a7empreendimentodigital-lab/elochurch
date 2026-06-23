@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import type { FocusEvent } from "react";
+import { createZodFormResolver } from "@/lib/zod-form-resolver";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   portalPerfilSchema,
   type PortalPerfilInput,
+  type PortalPerfilValues,
 } from "@/lib/validations/portal-perfil.schema";
 import { BR_ESTADOS } from "@/types/igreja";
 import { fetchAddressByCep, formatCep } from "@/lib/cep";
@@ -18,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { updatePortalPerfilAction } from "@/app/portal/actions";
 
 interface PortalPerfilFormProps {
-  defaultValues: PortalPerfilInput;
+  defaultValues: PortalPerfilValues;
   nome: string;
 }
 
@@ -29,9 +30,8 @@ export function PortalPerfilForm({ defaultValues, nome }: PortalPerfilFormProps)
   const [cepLoading, setCepLoading] = useState(false);
   const [cepLookupError, setCepLookupError] = useState<string | null>(null);
 
-  const form = useForm<PortalPerfilInput>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(portalPerfilSchema as any),
+  const form = useForm<PortalPerfilValues, unknown, PortalPerfilInput>({
+    resolver: createZodFormResolver(portalPerfilSchema),
     defaultValues,
   });
 

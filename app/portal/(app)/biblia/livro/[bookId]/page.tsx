@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { BibleChapterSummary } from "@/types/bible";
 import { getBibleBook } from "@/services/bible.service";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,7 @@ export default async function PortalBibliaLivroPage({ params }: PageProps) {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">Capítulos</h2>
         <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
-          {book.chapters.map((ch) => (
+          {book.chapters.map((ch: BibleChapterSummary) => (
             <Link
               key={ch.id}
               href={`${base}/${ch.number}`}

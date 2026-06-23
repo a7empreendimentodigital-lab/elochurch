@@ -49,4 +49,5 @@ export const portalPerfilSchema = z.object({
   estado: z.enum(BR_ESTADOS),
 });
 
+export type PortalPerfilValues = z.input<typeof portalPerfilSchema>;
 export type PortalPerfilInput = z.infer<typeof portalPerfilSchema>;

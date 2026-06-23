@@ -1,7 +1,12 @@
 "use client";
 
-import { useForm, type FieldValues, type UseFormReturn } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useForm,
+  type DefaultValues,
+  type FieldValues,
+  type UseFormReturn,
+} from "react-hook-form";
+import { createZodFormResolver } from "@/lib/zod-form-resolver";
 import type { z } from "zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,7 +14,7 @@ import { EloCard } from "@/components/elo/elo-card";
 
 interface EloFormProps<T extends FieldValues> {
   schema: z.ZodType<T>;
-  defaultValues?: Partial<T>;
+  defaultValues?: DefaultValues<T>;
   onSubmit: (data: T) => void | Promise<void>;
   children: (form: UseFormReturn<T>) => React.ReactNode;
   title?: string;
@@ -35,10 +40,8 @@ export function EloForm<T extends FieldValues>({
   loading,
 }: EloFormProps<T>) {
   const form = useForm<T>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(schema as any),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    defaultValues: defaultValues as any,
+    resolver: createZodFormResolver(schema),
+    defaultValues,
   });
 
   return (

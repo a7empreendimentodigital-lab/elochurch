@@ -50,7 +50,7 @@ export function generateRelatorioPatrimonioPdf(
       styles: { fontSize: 9 },
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    y = (doc as any).lastAutoTable.finalY + 10;
+    y = (doc.lastAutoTable?.finalY ?? y) + 10;
   }
 
   if (relatorio.bens.length > 0) {
@@ -74,7 +74,7 @@ export function generateRelatorioPatrimonioPdf(
       styles: { fontSize: 8 },
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    y = (doc as any).lastAutoTable.finalY + 10;
+    y = (doc.lastAutoTable?.finalY ?? y) + 10;
   }
 
   if (relatorio.manutencoes.length > 0) {

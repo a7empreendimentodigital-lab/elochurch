@@ -122,6 +122,7 @@ export const membroFormSchema = z.object({
   ),
 });
 
+export type MembroFormValues = z.input<typeof membroFormSchema>;
 export type MembroFormInput = z.infer<typeof membroFormSchema>;
 
 export const membroIdSchema = z.string().cuid("ID de membro inválido");

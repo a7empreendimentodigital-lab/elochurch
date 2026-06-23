@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import type { BibleFavoriteItem } from "@/types/bible";
 import { getBibleUserRef } from "@/lib/bible-user.server";
 import { listBibleFavorites } from "@/services/bible.service";
 import { formatBibleReference } from "@/lib/bible-reference";
@@ -20,7 +21,7 @@ export default async function BibliaFavoritosPage() {
           {favorites.length === 0 ? (
             <li className="text-sm text-muted-foreground">Nenhum favorito ainda.</li>
           ) : (
-            favorites.map((f) => (
+            favorites.map((f: BibleFavoriteItem) => (
               <li key={f.id}>
                 <Link
                   href={`/biblia/livro/${f.verse.bookId}/${f.verse.chapter.number}?v=${f.verse.verseNumber}`}

@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import type { BibleUserRef } from "@/lib/bible-user.server";
 import { bibleUserWhere } from "@/lib/bible-user.server";
 import { assertCultoAccess } from "@/services/central-culto.service";
+import type { HarpaFavoriteItem, HarpaHistoryItem, HarpaHymnListItem } from "@/types/harpa";
 
-export async function listHarpaHymns(limit = 640) {
+export async function listHarpaHymns(limit = 640): Promise<HarpaHymnListItem[]> {
   return prisma.harpaHymn.findMany({
     orderBy: { numero: "asc" },
     take: limit,
@@ -18,7 +19,7 @@ export async function getHarpaHymnById(id: string) {
   return prisma.harpaHymn.findUnique({ where: { id } });
 }
 
-export async function searchHarpa(query: string, limit = 50) {
+export async function searchHarpa(query: string, limit = 50): Promise<HarpaHymnListItem[]> {
   const q = query.trim();
   if (!q) return [];
 
@@ -58,7 +59,7 @@ export async function toggleHarpaFavorite(user: BibleUserRef, hymnId: string) {
   return { favorited: true };
 }
 
-export async function listHarpaFavorites(user: BibleUserRef) {
+export async function listHarpaFavorites(user: BibleUserRef): Promise<HarpaFavoriteItem[]> {
   if (!user) return [];
   return prisma.harpaFavorite.findMany({
     where: bibleUserWhere(user),
@@ -97,7 +98,10 @@ export async function recordHarpaHistory(user: BibleUserRef, hymnId: string) {
   });
 }
 
-export async function listHarpaHistory(user: BibleUserRef, limit = 40) {
+export async function listHarpaHistory(
+  user: BibleUserRef,
+  limit = 40
+): Promise<HarpaHistoryItem[]> {
   if (!user) return [];
   return prisma.harpaReadingHistory.findMany({
     where: bibleUserWhere(user),

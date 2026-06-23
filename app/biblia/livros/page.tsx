@@ -2,14 +2,15 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import type { BibleBookListItem } from "@/types/bible";
 import { listBibleBooks } from "@/services/bible.service";
 import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
-function BookList({ items }: { items: Awaited<ReturnType<typeof listBibleBooks>> }) {
+function BookList({ items }: { items: BibleBookListItem[] }) {
   return (
     <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-      {items.map((b) => (
+      {items.map((b: BibleBookListItem) => (
         <li key={b.id}>
           <Link
             href={`/biblia/livro/${b.id}`}
@@ -30,8 +31,8 @@ function BookList({ items }: { items: Awaited<ReturnType<typeof listBibleBooks>>
 export default async function BibliaLivrosPage() {
   const books = await listBibleBooks();
 
-  const oldT = books.filter((b) => b.testament === "OLD");
-  const newT = books.filter((b) => b.testament === "NEW");
+  const oldT = books.filter((b: BibleBookListItem) => b.testament === "OLD");
+  const newT = books.filter((b: BibleBookListItem) => b.testament === "NEW");
 
   return (
     <AdminPage>
