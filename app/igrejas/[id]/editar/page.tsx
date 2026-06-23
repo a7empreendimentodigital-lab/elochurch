@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getIgrejaById, listSedes } from "@/services/igrejas.service";
-import { updateIgrejaAction } from "@/app/igrejas/actions";
 import { igrejaIdSchema } from "@/lib/validations/igreja.schema";
 import { IgrejaFormClient } from "@/components/igrejas/igreja-form-client";
 import { Button } from "@/components/ui/button";
@@ -45,9 +44,6 @@ export default async function EditarIgrejaPage({ params }: PageProps) {
     igrejaId: igreja.igrejaId,
   };
 
-  const boundUpdate = (data: IgrejaFormInput) =>
-    updateIgrejaAction(parsed.data, data);
-
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
@@ -61,7 +57,6 @@ export default async function EditarIgrejaPage({ params }: PageProps) {
         sedes={sedes}
         igrejaId={parsed.data}
         defaultValues={defaultValues}
-        onSubmitAction={boundUpdate}
       />
     </div>
   );

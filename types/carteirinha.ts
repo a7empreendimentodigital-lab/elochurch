@@ -13,6 +13,7 @@ export type MemberCardData = {
   dataAdmissao: string | null;
   nascimento: string;
   estadoCivil: string;
+  nomeEsposa: string | null;
   telefone: string;
   emitidaEm: string;
   validaAte: string;
@@ -28,8 +29,15 @@ export type MembroPublicoVerificacao = {
   codigo: string;
   nome: string;
   igreja: string;
+  pastorPresidente: string;
   cargo: string | null;
   ministerio: string | null;
+  congregacao: string | null;
+  estadoCivil: string;
+  nomeEsposa: string | null;
+  dataAdmissao: string | null;
+  emitidaEm: string;
+  validaAte: string;
   status: MembroStatus;
   verificadoEm: string;
 };

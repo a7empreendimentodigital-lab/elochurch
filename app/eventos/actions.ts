@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { eventoSchema } from "@/lib/validations/evento.schema";
-import { createEvento, updateEvento } from "@/services/eventos.service";
+import { createEvento, updateEvento, deleteEvento } from "@/services/eventos.service";
 import { formatZodErrors, type ActionResult } from "@/lib/action-result";
+import { guardPanelDelete } from "@/lib/panel-delete-policy.server";
 
 function revalidateEventos() {
   revalidatePath("/eventos");
@@ -49,5 +50,17 @@ export async function updateEventoAction(
     return { success: true };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : "Erro" };
+  }
+}
+
+export async function deleteEventoAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
+  try {
+    await deleteEvento(id);
+    revalidateEventos();
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : "Erro ao excluir" };
   }
 }

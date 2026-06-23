@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil, MapPin, Phone, Church, User, IdCard } from "lucide-react";
+import { Pencil, MapPin, Phone, Church, User, IdCard, FileStack } from "lucide-react";
 import { formatCpf } from "@/lib/cpf";
 import { formatDateBR } from "@/lib/dates";
 import type { MembroComIgreja } from "@/types/membro";
@@ -81,6 +81,12 @@ export function MembroDetail({ membro, onDelete }: MembroDetailProps) {
                 Editar
               </Link>
             </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/documentos">
+                <FileStack className="mr-2 h-4 w-4" />
+                Documentos
+              </Link>
+            </Button>
             <AtivarPortalForm
               membroId={membro.id}
               portalAtivo={membro.portalAtivo}
@@ -128,6 +134,11 @@ export function MembroDetail({ membro, onDelete }: MembroDetailProps) {
             <DetailItem label="CPF" value={formatCpf(membro.cpf)} />
             <DetailItem label="RG" value={membro.rg ?? "—"} />
             <DetailItem label="Nascimento" value={formatDateBR(membro.nascimento)} />
+            <DetailItem
+              label="Estado civil"
+              value={ESTADO_CIVIL_LABEL[membro.estadoCivil]}
+            />
+            <DetailItem label="Nome do cônjuge" value={membro.nomeEsposa ?? "—"} />
             <DetailItem label="Profissão" value={membro.profissao ?? "—"} />
           </Section>
 

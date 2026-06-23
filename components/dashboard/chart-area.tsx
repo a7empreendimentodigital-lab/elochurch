@@ -18,6 +18,7 @@ interface ChartAreaProps {
   dataKey?: string;
   color?: string;
   gradientId?: string;
+  className?: string;
 }
 
 export function ChartArea({
@@ -27,10 +28,11 @@ export function ChartArea({
   dataKey = "value",
   color = "#D4A537",
   gradientId = "goldGradient",
+  className,
 }: ChartAreaProps) {
   return (
-    <EloCard title={title} description={description} accent="top">
-      <div className="h-[280px] w-full">
+    <EloCard title={title} description={description} accent="top" className={className}>
+      <div className="h-[200px] w-full min-w-0 sm:h-[240px] md:h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <defs>

@@ -29,7 +29,7 @@ export default async function EditarBemPage({ params }: PageProps) {
         igrejaId: bem.igrejaId,
         nome: bem.nome,
         categoria: bem.categoria,
-        localizacao: bem.localizacao,
+        localizacao: bem.localizacao ?? null,
         valor: decimalToNumber(bem.valor),
         fornecedor: bem.fornecedor,
         notaFiscal: bem.notaFiscal,

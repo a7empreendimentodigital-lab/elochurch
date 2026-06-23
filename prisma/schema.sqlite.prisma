@@ -1,0 +1,616 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// Desenvolvimento local — gerado a partir de schema.mysql.prisma (sem @db nativos).
+/// Restaurar MySQL: npm run db:use:mysql
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum IgrejaTipo {
+  SEDE
+  FILIAL
+}
+
+enum IgrejaStatus {
+  ATIVA
+  INATIVA
+  SUSPENSA
+}
+
+/// Congregação (sede ou filial). Filiais referenciam a sede via igreja_id.
+model Igreja {
+  id          String       @id @default(cuid())
+  nome        String      
+  tipo        IgrejaTipo
+  endereco    String      
+  cidade      String      
+  estado      String      
+  telefone    String      
+  responsavel String      
+  status      IgrejaStatus @default(ATIVA)
+
+  /// ID da igreja sede (obrigatório quando tipo = FILIAL)
+  igrejaId String? @map("igreja_id")
+  sede     Igreja? @relation("Filiais", fields: [igrejaId], references: [id], onDelete: Restrict)
+  filiais  Igreja[] @relation("Filiais")
+  membros  Membro[]
+  eventos  Evento[]
+  cultos   Culto[]
+  ebdProfessores       EbdProfessor[]
+  ebdSuperintendentes  EbdSuperintendente[]
+  ebdClasses           EbdClasse[]
+  finDizimos           FinDizimo[]
+  finOfertas           FinOferta[]
+  finReceitas          FinReceita[]
+  finDespesas          FinDespesa[]
+  patBens              PatBem[]
+  patInventarios       PatInventario[]
+  adminUsuarios        AdminUsuario[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([tipo])
+  @@index([status])
+  @@map("igrejas")
+}
+
+enum Sexo {
+  MASCULINO
+  FEMININO
+}
+
+enum EstadoCivilMembro {
+  SOLTEIRO
+  CASADO
+  DIVORCIADO
+  VIUVO
+  UNIAO_ESTAVEL
+  OUTRO
+}
+
+enum MembroStatus {
+  ATIVO
+  CONGREGADO
+  EXPERIENCIA
+  DISCIPLINADO
+  AFASTADO
+  TRANSFERIDO
+  FALECIDO
+}
+
+model Membro {
+  id     String @id @default(cuid())
+  codigo String @unique
+
+  /// Token público para QR da carteirinha (não expõe CPF/dados sensíveis)
+  carteirinhaToken String @unique @default(cuid()) @map("carteirinha_token")
+
+  foto         String?
+  nomeCompleto String  @map("nome_completo")
+  cpf          String 
+  rg           String?
+  nascimento   DateTime
+  sexo         Sexo
+  estadoCivil  EstadoCivilMembro @map("estado_civil")
+  nomeEsposa   String?           @map("nome_esposa")
+  profissao    String?
+
+  telefone  String 
+  whatsapp  String?
+  email     String?
+
+  cep         String 
+  rua         String 
+  numero      String 
+  complemento String?
+  bairro      String 
+  cidade      String 
+  estado      String 
+
+  pai String?
+  mae String?
+
+  dataConversao        DateTime? @map("data_conversao")
+  batismoAguas         DateTime? @map("batismo_aguas")
+  localBatismo         String?   @map("local_batismo")
+  batismoEspiritoSanto DateTime? @map("batismo_espirito_santo")
+  igrejaAnterior       String?   @map("igreja_anterior")
+  dataAdmissao         DateTime? @map("data_admissao")
+  ministerio           String?  
+  cargo                String?  
+  congregacao          String?  
+
+  status MembroStatus @default(ATIVO)
+
+  igrejaId String @map("igreja_id")
+  igreja   Igreja @relation(fields: [igrejaId], references: [id], onDelete: Restrict)
+
+  /// Portal do membro
+  senhaHash    String?  @map("senha_hash")
+  portalAtivo  Boolean  @default(false) @map("portal_ativo")
+
+  ebdProfessores       EbdProfessor[]
+  ebdSuperintendentes  EbdSuperintendente[]
+  ebdAlunos            EbdAluno[]
+  presencasCulto       PresencaCulto[]
+  historico            HistoricoMembro[]
+  finDizimos           FinDizimo[]
+  finOfertas           FinOferta[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([igrejaId, cpf])
+  @@index([igrejaId])
+  @@index([status])
+  @@index([nomeCompleto])
+  @@index([portalAtivo])
+  @@map("membros")
+}
+
+enum HistoricoTipo {
+  ADMISSAO
+  BATISMO
+  MINISTERIO
+  STATUS
+  EVENTO
+  CULTO
+  EBD
+  OUTRO
+}
+
+model Evento {
+  id          String   @id @default(cuid())
+  igrejaId    String   @map("igreja_id")
+  titulo      String  
+  descricao   String? 
+  dataInicio  DateTime @map("data_inicio")
+  dataFim     DateTime? @map("data_fim")
+  local       String? 
+
+  igreja     Igreja       @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  finOfertas FinOferta[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([igrejaId])
+  @@index([dataInicio])
+  @@map("eventos")
+}
+
+model Culto {
+  id       String   @id @default(cuid())
+  igrejaId String   @map("igreja_id")
+  titulo   String  
+  data     DateTime
+  horario  String? 
+
+  igreja     Igreja          @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  presencas  PresencaCulto[]
+  finOfertas FinOferta[]
+
+  @@index([igrejaId])
+  @@index([data])
+  @@map("cultos")
+}
+
+model PresencaCulto {
+  id       String  @id @default(cuid())
+  membroId String  @map("membro_id")
+  cultoId  String  @map("culto_id")
+  presente Boolean @default(true)
+
+  membro Membro @relation(fields: [membroId], references: [id], onDelete: Cascade)
+  culto  Culto  @relation(fields: [cultoId], references: [id], onDelete: Cascade)
+
+  @@unique([membroId, cultoId])
+  @@map("presencas_culto")
+}
+
+enum EbdRegistradoPor {
+  PROFESSOR
+  SUPERINTENDENTE
+}
+
+/// ─── Módulo EBD (por igreja_id) ───
+
+model EbdProfessor {
+  id       String  @id @default(cuid())
+  igrejaId String  @map("igreja_id")
+  membroId String? @map("membro_id")
+  nome     String 
+  telefone String?
+  email    String?
+  ativo    Boolean @default(true)
+
+  igreja   Igreja      @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  membro   Membro?     @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  classes  EbdClasse[] @relation("ClasseProfessor")
+  chamadas EbdChamada[] @relation("ChamadaProfessor")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@map("ebd_professores")
+}
+
+model EbdSuperintendente {
+  id       String  @id @default(cuid())
+  igrejaId String  @map("igreja_id")
+  membroId String? @map("membro_id")
+  nome     String 
+  telefone String?
+  email    String?
+  ativo    Boolean @default(true)
+
+  igreja   Igreja       @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  membro   Membro?      @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  classes  EbdClasse[]  @relation("ClasseSuperintendente")
+  chamadas EbdChamada[] @relation("ChamadaSuperintendente")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@map("ebd_superintendentes")
+}
+
+model EbdClasse {
+  id                String  @id @default(cuid())
+  igrejaId          String  @map("igreja_id")
+  nome              String 
+  faixaEtaria       String? @map("faixa_etaria")
+  sala              String?
+  professorId       String? @map("professor_id")
+  superintendenteId String? @map("superintendente_id")
+  ativa             Boolean @default(true)
+
+  igreja          Igreja              @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  professor       EbdProfessor?       @relation("ClasseProfessor", fields: [professorId], references: [id], onDelete: SetNull)
+  superintendente EbdSuperintendente? @relation("ClasseSuperintendente", fields: [superintendenteId], references: [id], onDelete: SetNull)
+  alunos          EbdAluno[]
+  chamadas        EbdChamada[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@map("ebd_classes")
+}
+
+model EbdAluno {
+  id        String   @id @default(cuid())
+  classeId  String   @map("classe_id")
+  membroId  String   @map("membro_id")
+  ativo     Boolean  @default(true)
+  matricula DateTime @default(now()) @map("matricula")
+
+  classe    EbdClasse         @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  membro    Membro            @relation(fields: [membroId], references: [id], onDelete: Cascade)
+  presencas EbdPresencaChamada[]
+
+  @@unique([classeId, membroId])
+  @@index([membroId])
+  @@map("ebd_alunos")
+}
+
+model EbdChamada {
+  id                String           @id @default(cuid())
+  classeId          String           @map("classe_id")
+  data              DateTime        
+  registradoPor     EbdRegistradoPor @map("registrado_por")
+  professorId       String?          @map("professor_id")
+  superintendenteId String?          @map("superintendente_id")
+  observacaoGeral   String?          @map("observacao_geral")
+
+  classe          EbdClasse           @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  professor       EbdProfessor?       @relation("ChamadaProfessor", fields: [professorId], references: [id], onDelete: SetNull)
+  superintendente EbdSuperintendente? @relation("ChamadaSuperintendente", fields: [superintendenteId], references: [id], onDelete: SetNull)
+  presencas       EbdPresencaChamada[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([classeId, data])
+  @@index([data])
+  @@map("ebd_chamadas")
+}
+
+model EbdPresencaChamada {
+  id            String   @id @default(cuid())
+  chamadaId     String   @map("chamada_id")
+  alunoId       String   @map("aluno_id")
+  presente      Boolean  @default(false)
+  trouxeBiblia  Boolean  @default(false) @map("trouxe_biblia")
+  trouxeRevista Boolean  @default(false) @map("trouxe_revista")
+  oferta        Decimal?
+  observacao    String? 
+  justificativa String? 
+
+  chamada EbdChamada @relation(fields: [chamadaId], references: [id], onDelete: Cascade)
+  aluno   EbdAluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@unique([chamadaId, alunoId])
+  @@map("ebd_presencas_chamada")
+}
+
+model HistoricoMembro {
+  id        String        @id @default(cuid())
+  membroId  String        @map("membro_id")
+  tipo      HistoricoTipo
+  titulo    String       
+  descricao String?      
+  data      DateTime      @default(now())
+
+  membro Membro @relation(fields: [membroId], references: [id], onDelete: Cascade)
+
+  @@index([membroId])
+  @@index([data])
+  @@map("historico_membro")
+}
+
+// ─── Módulo Financeiro (por igreja_id) ───
+
+enum FinFormaPagamento {
+  DINHEIRO
+  PIX
+  CARTAO
+  TRANSFERENCIA
+  CHEQUE
+  OUTRO
+}
+
+enum FinOfertaTipo {
+  AVULSA
+  CULTO
+  MISSIONARIA
+  ESPECIAL
+  EVENTO
+  EBD
+}
+
+model FinDizimo {
+  id              String            @id @default(cuid())
+  igrejaId        String            @map("igreja_id")
+  membroId        String?           @map("membro_id")
+  valor           Decimal          
+  data            DateTime         
+  formaPagamento  FinFormaPagamento @map("forma_pagamento")
+  observacao      String?          
+
+  igreja Igreja @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  membro Membro? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([membroId])
+  @@index([data])
+  @@map("fin_dizimos")
+}
+
+model FinOferta {
+  id              String            @id @default(cuid())
+  igrejaId        String            @map("igreja_id")
+  tipo            FinOfertaTipo
+  valor           Decimal          
+  data            DateTime         
+  formaPagamento  FinFormaPagamento @map("forma_pagamento")
+  membroId        String?           @map("membro_id")
+  cultoId         String?           @map("culto_id")
+  eventoId        String?           @map("evento_id")
+  doadorNome      String?           @map("doador_nome")
+  descricao       String?          
+
+  igreja Igreja  @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  membro Membro? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  culto  Culto?  @relation(fields: [cultoId], references: [id], onDelete: SetNull)
+  evento Evento? @relation(fields: [eventoId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([tipo])
+  @@index([data])
+  @@map("fin_ofertas")
+}
+
+model FinReceita {
+  id              String            @id @default(cuid())
+  igrejaId        String            @map("igreja_id")
+  descricao       String           
+  valor           Decimal          
+  data            DateTime         
+  formaPagamento  FinFormaPagamento @map("forma_pagamento")
+  categoria       String?          
+  observacao      String?          
+
+  igreja Igreja @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([data])
+  @@map("fin_receitas")
+}
+
+model FinDespesa {
+  id              String            @id @default(cuid())
+  igrejaId        String            @map("igreja_id")
+  descricao       String           
+  valor           Decimal          
+  data            DateTime         
+  formaPagamento  FinFormaPagamento @map("forma_pagamento")
+  categoria       String?          
+  fornecedor      String?          
+  observacao      String?          
+
+  igreja Igreja @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([data])
+  @@map("fin_despesas")
+}
+
+// ─── Módulo Patrimônio (por igreja_id) ───
+
+enum PatrimonioCategoria {
+  INSTRUMENTOS
+  SOM
+  MULTIMIDIA
+  INFORMATICA
+  MOVEIS
+  VEICULOS
+  ESTRUTURA
+}
+
+enum PatBemStatus {
+  ATIVO
+  MANUTENCAO
+  BAIXADO
+}
+
+enum PatManutencaoTipo {
+  PREVENTIVA
+  CORRETIVA
+  CALIBRACAO
+  OUTRO
+}
+
+enum PatInventarioStatus {
+  ABERTO
+  CONCLUIDO
+}
+
+model PatBem {
+  id          String              @id @default(cuid())
+  codigo      String              @unique
+  qrToken     String              @unique @default(cuid()) @map("qr_token")
+  nome        String             
+  categoria   PatrimonioCategoria
+  igrejaId    String              @map("igreja_id")
+  localizacao String?            
+  valor       Decimal            
+  fornecedor  String?            
+  notaFiscal  String?             @map("nota_fiscal")
+  foto        String?            
+  status      PatBemStatus        @default(ATIVO)
+
+  igreja            Igreja              @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  manutencoes       PatManutencao[]
+  inventarioItens   PatInventarioItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([categoria])
+  @@index([status])
+  @@map("pat_bens")
+}
+
+model PatManutencao {
+  id           String            @id @default(cuid())
+  bemId        String            @map("bem_id")
+  data         DateTime         
+  tipo         PatManutencaoTipo
+  descricao    String           
+  custo        Decimal?         
+  responsavel  String?          
+  concluida    Boolean           @default(false)
+  proximaData  DateTime?         @map("proxima_data")
+
+  bem PatBem @relation(fields: [bemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([bemId])
+  @@index([data])
+  @@map("pat_manutencoes")
+}
+
+model PatInventario {
+  id         String              @id @default(cuid())
+  igrejaId   String              @map("igreja_id")
+  titulo     String             
+  data       DateTime           
+  status     PatInventarioStatus @default(ABERTO)
+  observacao String?            
+
+  igreja Igreja              @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
+  itens  PatInventarioItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([igrejaId])
+  @@index([data])
+  @@map("pat_inventarios")
+}
+
+model PatInventarioItem {
+  id                   String  @id @default(cuid())
+  inventarioId         String  @map("inventario_id")
+  bemId                String  @map("bem_id")
+  conferido            Boolean @default(false)
+  localizacaoEncontrada String? @map("localizacao_encontrada")
+  observacao           String?
+
+  inventario PatInventario @relation(fields: [inventarioId], references: [id], onDelete: Cascade)
+  bem        PatBem        @relation(fields: [bemId], references: [id], onDelete: Cascade)
+
+  @@unique([inventarioId, bemId])
+  @@map("pat_inventario_itens")
+}
+
+enum AdminPerfil {
+  ADMINISTRADOR_GERAL
+  PASTOR_PRESIDENTE
+  PASTOR_LOCAL
+  SUPERINTENDENTE
+  PROFESSOR
+  TESOUREIRO
+  SECRETARIO
+  MEMBRO
+}
+
+/// Usuários do painel administrativo (não confundir com Membro/portal)
+model AdminUsuario {
+  id        String      @id @default(cuid())
+  nome      String     
+  email     String      @unique
+  senhaHash String      @map("senha_hash")
+  perfil    AdminPerfil @default(ADMINISTRADOR_GERAL)
+  ativo     Boolean     @default(true)
+
+  igrejaId String? @map("igreja_id")
+  igreja   Igreja? @relation(fields: [igrejaId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([ativo])
+  @@map("admin_usuarios")
+}
+
+/// Configurações globais do sistema (cores, EBD, carteirinha, etc.)
+model ConfigSistema {
+  id        String   @id @default("default")
+  dados     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("config_sistema")
+}

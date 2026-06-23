@@ -2,7 +2,11 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatDateInput, parseDateInput } from "@/lib/dates";
 import { formatCpf, stripCpf } from "@/lib/cpf";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
+import {
+  assertAdminCanAccessIgreja,
+  enforceIgrejaIdForWrite,
+} from "@/lib/admin-igreja-scope.server";
 import type { MembroComIgreja } from "@/types/membro";
 import type { MembroFormInput } from "@/lib/validations/membro.schema";
 
@@ -37,6 +41,7 @@ function mapFormToData(input: MembroFormInput) {
     nascimento: parseDateInput(input.nascimento)!,
     sexo: input.sexo,
     estadoCivil: input.estadoCivil,
+    nomeEsposa: input.nomeEsposa,
     profissao: input.profissao,
     telefone: input.telefone.trim(),
     whatsapp: input.whatsapp,
@@ -65,7 +70,7 @@ function mapFormToData(input: MembroFormInput) {
 }
 
 export async function listMembros(igrejaIdFilter?: string | null) {
-  const igrejaAtiva = igrejaIdFilter ?? (await getIgrejaAtivaId());
+  const igrejaAtiva = igrejaIdFilter ?? (await resolveIgrejaAtivaId());
 
   return prisma.membro.findMany({
     where: igrejaAtiva ? { igrejaId: igrejaAtiva } : undefined,
@@ -75,10 +80,13 @@ export async function listMembros(igrejaIdFilter?: string | null) {
 }
 
 export async function getMembroById(id: string): Promise<MembroComIgreja | null> {
-  return prisma.membro.findUnique({
+  const membro = (await prisma.membro.findUnique({
     where: { id },
     include: includeIgreja,
-  }) as Promise<MembroComIgreja | null>;
+  })) as MembroComIgreja | null;
+  if (!membro) return null;
+  await assertAdminCanAccessIgreja(membro.igrejaId);
+  return membro;
 }
 
 export async function getMembroByCodigo(codigo: string) {
@@ -89,7 +97,8 @@ export async function getMembroByCodigo(codigo: string) {
 }
 
 export async function createMembro(input: MembroFormInput) {
-  const data = mapFormToData(input);
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
+  const data = mapFormToData({ ...input, igrejaId });
   const codigo = await generateMembroCodigo();
 
   const igreja = await prisma.igreja.findUnique({
@@ -117,8 +126,10 @@ export async function createMembro(input: MembroFormInput) {
 export async function updateMembro(id: string, input: MembroFormInput) {
   const existing = await prisma.membro.findUnique({ where: { id } });
   if (!existing) throw new Error("Membro não encontrado");
+  await assertAdminCanAccessIgreja(existing.igrejaId);
 
-  const data = mapFormToData(input);
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
+  const data = mapFormToData({ ...input, igrejaId });
 
   if (data.cpf !== existing.cpf || data.igrejaId !== existing.igrejaId) {
     const cpfExists = await prisma.membro.findFirst({
@@ -145,20 +156,36 @@ export async function updateMembro(id: string, input: MembroFormInput) {
 export async function deleteMembro(id: string) {
   const membro = await prisma.membro.findUnique({ where: { id } });
   if (!membro) throw new Error("Membro não encontrado");
-  return prisma.membro.delete({ where: { id } });
+  await assertAdminCanAccessIgreja(membro.igrejaId);
+
+  try {
+    return await prisma.membro.delete({ where: { id } });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg.includes("Foreign key") || msg.includes("foreign key")) {
+      throw new Error(
+        "Não foi possível excluir o membro porque ainda existem registros vinculados. Verifique dízimos, EBD ou outros vínculos."
+      );
+    }
+    throw e;
+  }
 }
 
 /** Converte membro do banco para valores do formulário */
 export function membroToFormInput(membro: MembroComIgreja): MembroFormInput {
   return {
     igrejaId: membro.igrejaId,
-    foto: membro.foto,
+    foto:
+      membro.foto && membro.foto.startsWith("/uploads/membros/")
+        ? membro.foto
+        : null,
     nomeCompleto: membro.nomeCompleto,
-    cpf: membro.cpf,
+    cpf: formatCpf(membro.cpf),
     rg: membro.rg,
     nascimento: formatDateInput(membro.nascimento),
     sexo: membro.sexo,
     estadoCivil: membro.estadoCivil,
+    nomeEsposa: membro.nomeEsposa,
     profissao: membro.profissao,
     telefone: membro.telefone,
     whatsapp: membro.whatsapp,

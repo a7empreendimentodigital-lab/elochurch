@@ -1,10 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Plus, Eye, Pencil } from "lucide-react";
+import { Plus } from "lucide-react";
 import { listCultos } from "@/services/cultos.service";
 import { formatDateBR } from "@/lib/dates";
+import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { RecordRowActions } from "@/components/admin/record-row-actions";
+import { CultoDeleteButton } from "@/components/cultos/culto-delete-button";
 import { DataTable } from "@/components/elo/data-table";
 import { Button } from "@/components/ui/button";
 
@@ -12,12 +15,12 @@ export default async function CultosPage() {
   const cultos = await listCultos().catch(() => []);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AdminPage>
       <AdminPageHeader
         title="Cultos"
-        description="Registro e acompanhamento de cultos da igreja."
+        description="Registro e acompanhamento dos cultos da igreja."
         actions={
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="gold" size="sm" className="w-full sm:w-auto" asChild>
             <Link href="/cultos/novo">
               <Plus className="mr-2 h-4 w-4" />
               Novo culto
@@ -28,6 +31,7 @@ export default async function CultosPage() {
       <DataTable
         title="Cultos cadastrados"
         description={`${cultos.length} registro(s)`}
+        getRowKey={(r) => r.id}
         columns={[
           { key: "titulo", header: "Título", cell: (r) => r.titulo },
           { key: "data", header: "Data", cell: (r) => formatDateBR(r.data) },
@@ -35,25 +39,18 @@ export default async function CultosPage() {
           { key: "igreja", header: "Igreja", cell: (r) => r.igreja.nome },
           {
             key: "acoes",
-            header: "",
+            header: "Ações",
             cell: (r) => (
-              <div className="flex justify-end gap-1">
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/cultos/${r.id}`}>
-                    <Eye className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/cultos/${r.id}/editar`}>
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+              <RecordRowActions
+                viewHref={`/cultos/${r.id}`}
+                editHref={`/cultos/${r.id}/editar`}
+                deleteSlot={<CultoDeleteButton id={r.id} />}
+              />
             ),
           },
         ]}
         data={cultos}
       />
-    </div>
+    </AdminPage>
   );
 }

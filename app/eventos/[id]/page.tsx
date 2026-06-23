@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
+import { EventoDeleteButton } from "@/components/eventos/evento-delete-button";
 import { getEventoById } from "@/services/eventos.service";
 import { formatDateBR } from "@/lib/dates";
 import { EloCard } from "@/components/elo/elo-card";
@@ -53,12 +54,15 @@ export default async function EventoDetailPage({ params }: PageProps) {
           </div>
         </dl>
       </EloCard>
-      <Button variant="outline" asChild>
-        <Link href={`/eventos/${id}/editar`}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Editar
-        </Link>
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" asChild>
+          <Link href={`/eventos/${id}/editar`}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Editar
+          </Link>
+        </Button>
+        <EventoDeleteButton id={id} redirectTo="/eventos" showLabel />
+      </div>
     </div>
   );
 }

@@ -12,6 +12,8 @@ import {
   updateMembro,
 } from "@/services/membros.service";
 import { formatZodErrors, type ActionResult } from "@/lib/action-result";
+import { guardPanelDelete } from "@/lib/panel-delete-policy.server";
+import { setIgrejaAtivaId } from "@/lib/igreja-context";
 
 export async function createMembroAction(
   input: MembroFormInput
@@ -27,6 +29,7 @@ export async function createMembroAction(
 
   try {
     const membro = await createMembro(parsed.data);
+    await setIgrejaAtivaId(membro.igrejaId);
     revalidatePath("/membros");
     return { success: true, data: { id: membro.id } };
   } catch (e) {
@@ -70,6 +73,8 @@ export async function updateMembroAction(
 }
 
 export async function deleteMembroAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   const idParsed = membroIdSchema.safeParse(id);
   if (!idParsed.success) {
     return { success: false, error: "ID inválido" };

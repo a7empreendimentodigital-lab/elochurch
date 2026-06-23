@@ -1,16 +1,18 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { IdCard, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { listMembros } from "@/services/membros.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
+import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DataTable } from "@/components/elo/data-table";
 import { Button } from "@/components/ui/button";
+import { CongregacaoAtivaNotice } from "@/components/admin/congregacao-ativa-notice";
 import { MembroStatusBadge } from "@/components/membros/membro-status-badge";
 
 export default async function CarteirinhasPage() {
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const membros = await listMembros(igrejaId).catch(() => []);
 
   const data = membros.map((m) => ({
@@ -22,21 +24,23 @@ export default async function CarteirinhasPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AdminPage maxWidth="7xl">
       <AdminPageHeader
         title="Carteirinhas"
-        description="Emissão e consulta de carteirinhas digitais dos membros."
+        description="Emissão e validação pública via QR Code."
       />
+      <CongregacaoAtivaNotice visibleCount={data.length} itemLabel="carteirinhas" />
       <DataTable
         title="Membros"
-        description={`${data.length} membro(s) — abra a carteirinha de cada um`}
+        description={`${data.length} membro(s)`}
+        getRowKey={(r) => r.id}
         data={data}
         columns={[
           {
             key: "codigo",
             header: "Código",
             cell: (r) => (
-              <span className="font-mono text-xs text-gold">{r.codigo}</span>
+              <span className="font-mono text-xs font-medium text-foreground">{r.codigo}</span>
             ),
           },
           { key: "nome", header: "Membro", cell: (r) => r.nome },
@@ -50,21 +54,23 @@ export default async function CarteirinhasPage() {
             key: "acoes",
             header: "",
             cell: (r) => (
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild>
                 <Link href={`/membros/${r.id}/carteirinha`} className="gap-2">
                   <Eye className="h-4 w-4" />
-                  Ver carteirinha
+                  Ver
                 </Link>
               </Button>
             ),
           },
         ]}
       />
-      <p className="text-center text-sm text-muted-foreground">
-        <IdCard className="mr-1 inline h-4 w-4" />
-        QR Code aponta para validação pública em{" "}
-        <code className="text-gold">/membro/[codigo]</code>
+      <p className="text-sm text-muted-foreground">
+        O QR da carteirinha abre a página pública{" "}
+        <code className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
+          /membro/[codigo]
+        </code>{" "}
+        para verificação (LGPD).
       </p>
-    </div>
+    </AdminPage>
   );
 }

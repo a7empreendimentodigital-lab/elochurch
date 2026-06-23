@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { listDespesas, periodoPadrao } from "@/services/financeiro.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { formatDateBR } from "@/lib/dates";
 import { formatBRL, decimalToNumber } from "@/lib/money";
 import { FIN_FORMA_PAGAMENTO_LABEL } from "@/types/financeiro";
@@ -19,7 +19,7 @@ export default async function DespesasPage({
   searchParams: Promise<{ de?: string; ate?: string }>;
 }) {
   const params = await searchParams;
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const padrao = periodoPadrao();
   const de = params.de ?? padrao.deStr;
   const ate = params.ate ?? padrao.ateStr;

@@ -36,6 +36,7 @@ export type DashboardEvento = {
   data: string;
   local: string | null;
   badge?: string;
+  href: string;
 };
 
 export type DashboardCulto = {
@@ -45,6 +46,7 @@ export type DashboardCulto = {
   horario: string | null;
   local: string | null;
   status: "realizado" | "agendado";
+  href: string;
 };
 
 export type DashboardMembroRecente = {
@@ -54,6 +56,7 @@ export type DashboardMembroRecente = {
   status: string;
   ministerio: string;
   foto: string | null;
+  href: string;
 };
 
 export type DashboardFinanceResumo = {
@@ -69,15 +72,19 @@ export type DashboardResumoHoje = {
   presenca: number;
   faltas: number;
   ofertas: number;
+  dizimos: number;
+  despesas: number;
 };
 
 export type MainDashboardData = {
   igrejaNome: string | null;
+  igrejaTipo?: "SEDE" | "FILIAL" | null;
   dataHoje: string;
   kpis: DashboardKpis;
   kpiMeta: DashboardKpiMeta;
   crescimentoMembros: DashboardChartPoint[];
   ofertasPorMes: DashboardChartPoint[];
+  entradasPorMes: DashboardChartPoint[];
   ebdFrequencia: DashboardEbdFrequencia;
   eventos: DashboardEvento[];
   cultosSemana: DashboardCulto[];

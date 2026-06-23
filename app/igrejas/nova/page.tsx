@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { listSedes } from "@/services/igrejas.service";
-import { createIgrejaAction } from "@/app/igrejas/actions";
 import { IgrejaFormClient } from "@/components/igrejas/igreja-form-client";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ export default async function NovaIgrejaPage() {
         </Link>
       </Button>
       <AdminPageHeader title="Nova igreja" />
-      <IgrejaFormClient mode="create" sedes={sedes} onSubmitAction={createIgrejaAction} />
+      <IgrejaFormClient mode="create" sedes={sedes} />
     </div>
   );
 }

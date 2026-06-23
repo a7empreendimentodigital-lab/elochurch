@@ -6,6 +6,7 @@ import { listChamadas } from "@/services/ebd.service";
 import { getIgrejaAtivaId } from "@/lib/igreja-context";
 import { formatDateBR } from "@/lib/dates";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { EbdChamadaRowActions } from "@/components/ebd/ebd-chamada-row-actions";
 import { EloCard } from "@/components/elo/elo-card";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +19,7 @@ export default async function EbdChamadasPage() {
       <AdminPageHeader
         title="Chamadas EBD"
         actions={
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/ebd/chamada/nova">
               <Plus className="mr-2 h-4 w-4" />
               Nova chamada
@@ -37,13 +38,15 @@ export default async function EbdChamadasPage() {
         ) : (
           <ul className="divide-y divide-border text-sm">
             {chamadas.map((c) => (
-              <li key={c.id} className="flex justify-between py-3">
+              <li key={c.id} className="flex items-center justify-between gap-4 py-3">
                 <span>
                   {c.classe.nome} — {formatDateBR(c.data)}
                 </span>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/ebd/relatorio/${c.id}`}>Abrir relatório</Link>
-                </Button>
+                <EbdChamadaRowActions
+                  chamadaId={c.id}
+                  classeNome={c.classe.nome}
+                  dataLabel={formatDateBR(c.data)}
+                />
               </li>
             ))}
           </ul>

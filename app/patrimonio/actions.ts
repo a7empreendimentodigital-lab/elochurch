@@ -23,6 +23,7 @@ import {
   concluirInventario,
 } from "@/services/patrimonio.service";
 import { formatZodErrors, type ActionResult } from "@/lib/action-result";
+import { guardPanelDelete } from "@/lib/panel-delete-policy.server";
 
 function revalidatePat() {
   revalidatePath("/patrimonio");
@@ -37,10 +38,15 @@ export async function createBemAction(
 ): Promise<ActionResult<{ id: string }>> {
   const parsed = patBemSchema.safeParse(input);
   if (!parsed.success) {
+    const fieldErrors = formatZodErrors(parsed.error);
+    const first =
+      Object.values(fieldErrors).flat()[0] ??
+      parsed.error.issues[0]?.message ??
+      "Dados inválidos";
     return {
       success: false,
-      error: "Dados inválidos",
-      fieldErrors: formatZodErrors(parsed.error),
+      error: first,
+      fieldErrors,
     };
   }
   try {
@@ -48,7 +54,24 @@ export async function createBemAction(
     revalidatePat();
     return { success: true, data: { id: row.id } };
   } catch (e) {
-    return { success: false, error: e instanceof Error ? e.message : "Erro" };
+    const msg = e instanceof Error ? e.message : "Erro ao cadastrar bem";
+    if (msg.includes("Argument `igreja`") || msg.includes("Foreign key")) {
+      return {
+        success: false,
+        error:
+          "Não foi possível vincular à igreja. Selecione a congregação novamente e salve.",
+      };
+    }
+    if (msg.includes("Unique constraint") && msg.toLowerCase().includes("codigo")) {
+      return {
+        success: false,
+        error: "Código patrimonial em conflito. Tente salvar novamente.",
+      };
+    }
+    return {
+      success: false,
+      error: msg.length > 280 ? "Não foi possível salvar o bem. Verifique os dados." : msg,
+    };
   }
 }
 
@@ -71,6 +94,8 @@ export async function updateBemAction(
 }
 
 export async function deleteBemAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   try {
     await deleteBem(id);
     revalidatePat();
@@ -115,6 +140,8 @@ export async function toggleManutencaoAction(
 }
 
 export async function deleteManutencaoAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   try {
     await deleteManutencao(id);
     revalidatePat();

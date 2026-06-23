@@ -6,75 +6,58 @@ import {
   Package,
   Calendar,
   CalendarDays,
-  FileBarChart,
 } from "lucide-react";
+import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { EloCard } from "@/components/elo/elo-card";
-import { Button } from "@/components/ui/button";
+import { ModuleHub } from "@/components/admin/module-hub";
 
 const relatorios = [
   {
     href: "/membros",
     label: "Membros",
-    desc: "Listagem e status dos membros",
     icon: Users,
+    description: "Listagem, status e cadastros",
   },
   {
-    href: "/ebd/chamadas",
+    href: "/ebd/relatorios",
     label: "EBD",
-    desc: "Chamadas e frequência",
     icon: BookOpen,
+    description: "Chamadas, frequência e PDF",
   },
   {
     href: "/financeiro/relatorios",
     label: "Financeiro",
-    desc: "Dízimos, ofertas e fluxo",
     icon: Wallet,
+    description: "Dízimos, ofertas e fluxo",
   },
   {
     href: "/patrimonio/relatorios",
     label: "Patrimônio",
-    desc: "Bens e inventário",
     icon: Package,
+    description: "Bens e inventário",
   },
   {
     href: "/cultos",
     label: "Cultos",
-    desc: "Histórico de cultos",
     icon: Calendar,
+    description: "Histórico de cultos",
   },
   {
     href: "/eventos",
     label: "Eventos",
-    desc: "Eventos e inscrições",
     icon: CalendarDays,
+    description: "Agenda de eventos",
   },
 ];
 
 export default function RelatoriosPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AdminPage>
       <AdminPageHeader
         title="Relatórios"
-        description="Central de relatórios por módulo do EloChurch."
+        description="Central de relatórios e exportações por módulo."
       />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {relatorios.map((r) => {
-          const Icon = r.icon;
-          return (
-            <EloCard key={r.href} title={r.label} className="h-full">
-              <Icon className="mb-3 h-8 w-8 text-gold" />
-              <p className="mb-4 text-sm text-muted-foreground">{r.desc}</p>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={r.href}>
-                  <FileBarChart className="mr-2 h-4 w-4" />
-                  Abrir
-                </Link>
-              </Button>
-            </EloCard>
-          );
-        })}
-      </div>
-    </div>
+      <ModuleHub title="Módulos" links={relatorios} />
+    </AdminPage>
   );
 }

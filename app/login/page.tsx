@@ -1,10 +1,13 @@
 import { Suspense } from "react";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
+import { getResolvedBranding } from "@/lib/branding.server";
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const branding = await getResolvedBranding();
+
   return (
     <Suspense fallback={null}>
-      <AdminLoginForm />
+      <AdminLoginForm bgImage={branding.bgLoginAdmin} />
     </Suspense>
   );
 }

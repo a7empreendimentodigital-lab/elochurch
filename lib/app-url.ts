@@ -9,9 +9,10 @@ export function getAppBaseUrl(): string {
   return "http://localhost:3000";
 }
 
+/** URL absoluta no QR — deve abrir a ficha pública do membro */
 export function getMembroPublicUrl(codigo: string): string {
-  const encoded = encodeURIComponent(codigo);
-  return `${getAppBaseUrl()}/membro/${encoded}`;
+  const path = getMembroPublicPath(codigo);
+  return `${getAppBaseUrl()}${path}`;
 }
 
 export function getMembroPublicPath(codigo: string): string {

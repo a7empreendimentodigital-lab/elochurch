@@ -3,17 +3,23 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
-import { FormField } from "@/components/elo/form-field";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { LoginSplitLayout } from "@/components/auth/login-split-layout";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DecorativeCurve } from "@/components/elo/decorative-curve";
-export function AdminLoginForm() {
+
+interface AdminLoginFormProps {
+  bgImage?: string;
+}
+
+export function AdminLoginForm({ bgImage }: AdminLoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [showSenha, setShowSenha] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -41,85 +47,93 @@ export function AdminLoginForm() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-4 elo-gradient-bg">
-      <DecorativeCurve position="top-left" />
-      <DecorativeCurve position="bottom-right" />
-
-      <div className="relative z-10 w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Image
-            src="/brand/logo.png"
-            alt="EloChurch"
-            width={180}
-            height={48}
-            className="mx-auto mb-4 h-12 w-auto object-contain"
-          />
-          <h1 className="text-2xl font-bold text-white">
-            Painel Administrativo
-          </h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Acesso restrito a usuários autorizados
-          </p>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-white/10 bg-[#0B2D5C]/90 p-6 shadow-2xl backdrop-blur-sm"
-        >
-          {error && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {error}
-            </div>
-          )}
-
-          <FormField
-            label="E-mail"
-            name="email"
-            type="email"
-            placeholder="admin@elochurch.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
-          />
-
-          <FormField
-            label="Senha"
-            name="senha"
-            type="password"
-            placeholder="••••••••"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
-          />
-
-          <Button
-            type="submit"
-            variant="gold"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Entrando…
-              </>
-            ) : (
-              "Entrar no sistema"
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-6 flex flex-col items-center gap-2 text-center text-sm text-slate-400">
+    <LoginSplitLayout
+      imageSrc={bgImage}
+      title="Acessar conta"
+      subtitle="Entre com suas credenciais do painel administrativo"
+      footer={
+        <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 lg:justify-start">
+          <Link href="/" className="hover:text-gold">
+            Ver site
+          </Link>
+          <span className="hidden text-slate-600 sm:inline">|</span>
           <Link href="/portal/login" className="hover:text-gold">
             Portal do membro
           </Link>
-          <Link href="/" className="hover:text-white">
-            Voltar ao início
-          </Link>
+        </p>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-muted-foreground">
+            E-mail
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            className="h-11 rounded-lg border border-input bg-white text-foreground shadow-sm placeholder:text-muted-foreground"
+          />
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="senha" className="text-muted-foreground">
+            Senha
+          </Label>
+          <div className="relative">
+            <Input
+              id="senha"
+              name="senha"
+              type={showSenha ? "text" : "password"}
+              placeholder="Sua senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+              autoComplete="current-password"
+              className="h-11 rounded-lg border border-input bg-white pr-10 text-foreground shadow-sm placeholder:text-muted-foreground"
+            />
+            <button
+              type="button"
+              onClick={() => setShowSenha((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+              aria-label={showSenha ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showSenha ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          variant="gold"
+          className="h-11 w-full rounded-lg text-base font-semibold"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Entrando…
+            </>
+          ) : (
+            "Entrar"
+          )}
+        </Button>
+      </form>
+    </LoginSplitLayout>
   );
 }

@@ -18,7 +18,6 @@ interface EloCardProps {
   headerAction?: React.ReactNode;
 }
 
-/** Card premium — evita visual ERP denso */
 export function EloCard({
   title,
   description,
@@ -31,29 +30,34 @@ export function EloCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden rounded-2xl border-border bg-card shadow-sm transition-shadow duration-300 hover:shadow-md",
-        accent === "gold" && "elo-card-border elo-gold-glow",
-        accent === "top" && "border-t-2 border-t-gold",
+        "overflow-hidden rounded-lg border-border bg-card",
+        accent === "gold" && "border-gold/30",
+        accent === "top" && "border-t-2 border-t-foreground/20",
         className
       )}
     >
       {(title || description || headerAction) && (
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-          <div className="space-y-1">
+        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 border-b border-border px-4 py-4 sm:px-5">
+          <div className="min-w-0 space-y-1 text-left">
             {title && (
-              <CardTitle className="text-base font-semibold">{title}</CardTitle>
+              <CardTitle className="text-base font-semibold sm:text-lg">{title}</CardTitle>
             )}
             {description && (
-              <CardDescription className="text-xs">{description}</CardDescription>
+              <CardDescription className="text-sm">{description}</CardDescription>
             )}
           </div>
           {headerAction}
         </CardHeader>
       )}
-      <CardContent className={cn(!title && !description && "pt-6")}>
+      <CardContent
+        className={cn(
+          "px-4 py-4 sm:px-5 sm:py-5",
+          !title && !description && "pt-5"
+        )}
+      >
         {children}
       </CardContent>
-      {footer && <CardFooter className="border-t border-border/60 pt-4">{footer}</CardFooter>}
+      {footer && <CardFooter className="border-t border-border pt-4">{footer}</CardFooter>}
     </Card>
   );
 }

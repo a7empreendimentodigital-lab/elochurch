@@ -92,7 +92,12 @@ export function DizimoForm({ igrejaId, membros, dataDefault }: DizimoFormProps) 
           value={observacao}
           onChange={(e) => setObservacao(e.target.value)}
         />
-        <Button type="submit" variant="gold" disabled={pending || !membroId}>
+        {membros.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Nenhum membro ativo nesta igreja. Cadastre membros em Membros.
+          </p>
+        )}
+        <Button type="submit" variant="gold" disabled={pending || !membroId || membros.length === 0}>
           {pending ? "Salvando..." : "Salvar"}
         </Button>
       </form>

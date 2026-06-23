@@ -6,7 +6,7 @@ import {
   getRelatorioFinanceiro,
   periodoPadrao,
 } from "@/services/financeiro.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { formatBRL } from "@/lib/money";
 import { EloCard } from "@/components/elo/elo-card";
 import { FinPeriodoFilter } from "@/components/financeiro/fin-periodo-filter";
@@ -24,7 +24,7 @@ export default async function RelatoriosFinanceiroPage({
   searchParams: Promise<{ de?: string; ate?: string }>;
 }) {
   const params = await searchParams;
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const padrao = periodoPadrao();
   const de = params.de ?? padrao.deStr;
   const ate = params.ate ?? padrao.ateStr;
@@ -33,7 +33,7 @@ export default async function RelatoriosFinanceiroPage({
     return (
       <EloCard title="Relatórios">
         <p className="text-sm text-muted-foreground">
-          Selecione uma igreja ativa para gerar relatórios PDF e Excel.
+          Cadastre uma igreja ativa em Igrejas para gerar relatórios PDF e Excel.
         </p>
       </EloCard>
     );

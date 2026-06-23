@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +11,7 @@ export async function getPortalSessionMembroId(): Promise<string | null> {
   return session?.user?.membroId ?? null;
 }
 
-export async function requirePortalMembro() {
+export const requirePortalMembro = cache(async () => {
   const membroId = await getPortalSessionMembroId();
   if (!membroId) throw new Error("Não autenticado");
 
@@ -21,15 +22,9 @@ export async function requirePortalMembro() {
 
   if (!membro || !membro.portalAtivo) throw new Error("Acesso negado");
   return membro;
-}
+});
 
-export async function getPortalDashboard(membroId: string) {
-  const membro = await prisma.membro.findUnique({
-    where: { id: membroId },
-    include: { igreja: { select: { nome: true } } },
-  });
-  if (!membro) return null;
-
+export async function getPortalDashboardStats(membroId: string, igrejaId: string) {
   const [ebdTotal, ebdPresente, cultosMes, eventosProximos] = await Promise.all([
     prisma.ebdPresencaChamada.count({
       where: { aluno: { membroId } },
@@ -48,7 +43,7 @@ export async function getPortalDashboard(membroId: string) {
     }),
     prisma.evento.count({
       where: {
-        igrejaId: membro.igrejaId,
+        igrejaId,
         dataInicio: { gte: new Date() },
       },
     }),
@@ -57,16 +52,7 @@ export async function getPortalDashboard(membroId: string) {
   const taxaEbd =
     ebdTotal > 0 ? Math.round((ebdPresente / ebdTotal) * 100) : null;
 
-  return {
-    nome: membro.nomeCompleto,
-    codigo: membro.codigo,
-    igreja: membro.igreja.nome,
-    status: membro.status,
-    foto: membro.foto,
-    taxaEbd,
-    cultosMes,
-    eventosProximos,
-  };
+  return { taxaEbd, cultosMes, eventosProximos };
 }
 
 function startOfMonth() {
@@ -196,10 +182,14 @@ export async function listPortalEventos(membroId: string) {
 }
 
 export async function listPortalCultos(membroId: string) {
+  const membro = await prisma.membro.findUnique({
+    where: { id: membroId },
+    select: { igrejaId: true },
+  });
+  if (!membro) return [];
+
   const cultos = await prisma.culto.findMany({
-    where: {
-      presencas: { some: { membroId } },
-    },
+    where: { igrejaId: membro.igrejaId },
     include: {
       presencas: {
         where: { membroId },
@@ -210,13 +200,17 @@ export async function listPortalCultos(membroId: string) {
     take: 40,
   });
 
-  return cultos.map((c) => ({
-    id: c.id,
-    titulo: c.titulo,
-    data: c.data,
-    horario: c.horario,
-    presente: c.presencas[0]?.presente ?? false,
-  }));
+  return cultos.map((c) => {
+    const presenca = c.presencas[0];
+    return {
+      id: c.id,
+      titulo: c.titulo,
+      data: c.data,
+      horario: c.horario,
+      presencaRegistrada: presenca != null,
+      presente: presenca?.presente ?? null,
+    };
+  });
 }
 
 export async function listPortalHistorico(membroId: string) {
@@ -229,6 +223,59 @@ export async function listPortalHistorico(membroId: string) {
 
 export async function getPortalCarteirinha(membroId: string) {
   return getCarteirinhaByMembroId(membroId);
+}
+
+export async function getPortalOracaoPage(membroId: string) {
+  const membro = await prisma.membro.findUnique({
+    where: { id: membroId },
+    select: { igrejaId: true, nomeCompleto: true },
+  });
+  if (!membro) return null;
+
+  let culto = await prisma.culto.findFirst({
+    where: { igrejaId: membro.igrejaId, centralStatus: "AO_VIVO" },
+    orderBy: { data: "desc" },
+    select: {
+      id: true,
+      titulo: true,
+      data: true,
+      horario: true,
+      centralStatus: true,
+    },
+  });
+  if (!culto) {
+    culto = await prisma.culto.findFirst({
+      where: { igrejaId: membro.igrejaId, centralStatus: "PREPARACAO" },
+      orderBy: { data: "desc" },
+      select: {
+        id: true,
+        titulo: true,
+        data: true,
+        horario: true,
+        centralStatus: true,
+      },
+    });
+  }
+
+  const pedidos = culto
+    ? await prisma.cultoPedidoOracao.findMany({
+        where: { cultoId: culto.id, membroId },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          pedido: true,
+          categoria: true,
+          createdAt: true,
+        },
+      })
+    : [];
+
+  return {
+    nome: membro.nomeCompleto,
+    culto,
+    pedidos,
+    podeEnviar: culto != null && culto.centralStatus !== "ENCERRADO",
+  };
 }
 
 export { formatDateInput };

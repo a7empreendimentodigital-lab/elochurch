@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EloModal } from "@/components/elo/elo-modal";
+import { usePanelDeletePolicy } from "@/components/layout/panel-delete-policy-context";
 
 interface DeleteIgrejaButtonProps {
   igrejaId: string;
@@ -18,7 +19,10 @@ export function DeleteIgrejaButton({
   onDelete,
 }: DeleteIgrejaButtonProps) {
   const router = useRouter();
+  const deletePolicy = usePanelDeletePolicy();
   const [open, setOpen] = useState(false);
+
+  if (!deletePolicy.isSedeAuthorized) return null;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -47,7 +51,7 @@ export function DeleteIgrejaButton({
         </Button>
       }
       title="Excluir igreja"
-      description={`Tem certeza que deseja excluir "${igrejaNome}"? Esta ação não pode ser desfeita.`}
+      description={`Tem certeza que deseja excluir "${igrejaNome}"? A congregação será removida permanentemente do banco de dados.`}
       footer={
         <>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>

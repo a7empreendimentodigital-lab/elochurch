@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Gênesis",
+    "abbrev": "gn",
+    "testament": "OLD",
+    "chapters": [
+      {
+        "chapter": 1,
+        "verses": [
+          { "verse": 1, "text": "No princípio criou Deus os céus e a terra." },
+          { "verse": 2, "text": "E a terra era sem forma e vazia; e havia trevas sobre a face do abismo; e o Espírito de Deus se movia sobre a face das águas." },
+          { "verse": 3, "text": "E disse Deus: Haja luz; e houve luz." }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Salmos",
+    "abbrev": "sl",
+    "testament": "OLD",
+    "chapters": [
+      {
+        "chapter": 91,
+        "verses": [
+          { "verse": 1, "text": "Aquele que habita no esconderijo do Altíssimo, à sombra do Onipotente descansará." },
+          { "verse": 2, "text": "Direi do Senhor: Ele é o meu refúgio e a minha fortaleza, o meu Deus, em quem confio." }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "João",
+    "abbrev": "joao",
+    "testament": "NEW",
+    "chapters": [
+      {
+        "chapter": 3,
+        "verses": [
+          {
+            "verse": 16,
+            "text": "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna."
+          }
+        ]
+      },
+      {
+        "chapter": 14,
+        "verses": [
+          { "verse": 1, "text": "Não se turbe o vosso coração; credes em Deus, crede também em mim." },
+          { "verse": 6, "text": "Eu sou o caminho, e a verdade e a vida; ninguém vem ao Pai senão por mim." }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Romanos",
+    "abbrev": "rm",
+    "testament": "NEW",
+    "chapters": [
+      {
+        "chapter": 8,
+        "verses": [
+          { "verse": 28, "text": "E sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus, daqueles que são chamados por seu decreto." }
+        ]
+      }
+    ]
+  }
+]

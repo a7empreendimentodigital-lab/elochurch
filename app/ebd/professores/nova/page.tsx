@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createProfessorAction } from "@/app/ebd/actions";
 import { EbdQuickForm } from "@/components/ebd/ebd-quick-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,6 @@ export default async function NovoProfessorEbdPage() {
         tipo="professor"
         igrejas={igrejas}
         defaultIgrejaId={defaultIgrejaId}
-        onSubmit={(data) => createProfessorAction(data as Parameters<typeof createProfessorAction>[0])}
         redirectTo="/ebd/professores"
       />
     </div>

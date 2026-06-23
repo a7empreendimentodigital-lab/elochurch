@@ -7,6 +7,7 @@ declare module "next-auth" {
     adminId?: string;
     role?: "admin" | "membro";
     perfil?: string;
+    igrejaId?: string | null;
   }
 
   interface Session {
@@ -18,6 +19,7 @@ declare module "next-auth" {
       adminId?: string;
       membroId?: string;
       perfil?: string;
+      igrejaId?: string | null;
     };
   }
 }
@@ -28,5 +30,6 @@ declare module "next-auth/jwt" {
     adminId?: string;
     role?: "admin" | "membro";
     perfil?: string;
+    igrejaId?: string | null;
   }
 }

@@ -1,19 +1,32 @@
 import { prisma } from "@/lib/prisma";
-import { formatDateBR, formatDateInput } from "@/lib/dates";
+import { formatDateBR } from "@/lib/dates";
 import { decimalToNumber } from "@/lib/money";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { getDashboardFinanceiro, periodoPadrao } from "@/services/financeiro.service";
 import { MEMBRO_STATUS_LABEL } from "@/types/membro";
 import type { MainDashboardData } from "@/types/dashboard";
 
-const MESES_CURTO = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const MESES_CURTO = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
 
 function startOfMonth(d: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
 }
 
 function endOfMonth(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0, 23, 59, 59, 999));
 }
 
 function labelMesAno(d: Date): string {
@@ -21,15 +34,25 @@ function labelMesAno(d: Date): string {
   return `${MESES_CURTO[d.getUTCMonth()]}/${y}`;
 }
 
+function eventoBadge(dataInicio: Date, now: Date): string {
+  const diffMs = dataInicio.getTime() - now.getTime();
+  const dias = Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+  if (dias <= 0) return "Hoje";
+  if (dias <= 3) return "Em breve";
+  if (dias <= 14) return "Confirmado";
+  return "Agendado";
+}
+
 export async function getMainDashboard(
   igrejaIdFilter?: string | null
 ): Promise<MainDashboardData> {
-  const igrejaId = igrejaIdFilter ?? (await getIgrejaAtivaId());
+  const igrejaId = igrejaIdFilter ?? (await resolveIgrejaAtivaId());
   const now = new Date();
   const mesInicio = startOfMonth(now);
   const mesFim = endOfMonth(now);
   const padrao = periodoPadrao();
   const semanaAtras = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const semanaFrente = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
   const dataHoje = formatDateBR(now);
 
   const igreja = igrejaId
@@ -40,6 +63,10 @@ export async function getMainDashboard(
     : null;
 
   const membroWhere = igrejaId ? { igrejaId } : {};
+  const finWhere = igrejaId ? { igrejaId } : {};
+  const patWhere = igrejaId
+    ? { igrejaId, status: { not: "BAIXADO" as const } }
+    : { status: { not: "BAIXADO" as const } };
   const ebdClasseWhere = igrejaId ? { igrejaId, ativa: true } : { ativa: true };
   const ebdAlunoWhere = igrejaId
     ? { ativo: true, classe: { igrejaId } }
@@ -55,8 +82,8 @@ export async function getMainDashboard(
     classesEbd,
     alunosEbd,
     alunosSemana,
-    presentesEbd,
-    ofertasAgg,
+    presentesEbdMes,
+    patrimoniosCount,
     membrosRecentes,
     eventos,
     cultosSemana,
@@ -89,13 +116,7 @@ export async function getMainDashboard(
         },
       },
     }),
-    prisma.finOferta.aggregate({
-      where: {
-        ...(igrejaId ? { igrejaId } : {}),
-        data: { gte: mesInicio, lte: mesFim },
-      },
-      _sum: { valor: true },
-    }),
+    prisma.patBem.count({ where: patWhere }),
     prisma.membro.findMany({
       where: membroWhere,
       orderBy: { createdAt: "desc" },
@@ -106,6 +127,7 @@ export async function getMainDashboard(
         nomeCompleto: true,
         status: true,
         ministerio: true,
+        cargo: true,
         foto: true,
       },
     }),
@@ -115,16 +137,16 @@ export async function getMainDashboard(
         dataInicio: { gte: now },
       },
       orderBy: { dataInicio: "asc" },
-      take: 3,
+      take: 5,
       select: { id: true, titulo: true, dataInicio: true, local: true },
     }),
     prisma.culto.findMany({
       where: {
         ...(igrejaId ? { igrejaId } : {}),
-        data: { gte: semanaAtras },
+        data: { gte: semanaAtras, lte: semanaFrente },
       },
       orderBy: { data: "asc" },
-      take: 6,
+      take: 8,
       select: { id: true, titulo: true, data: true, horario: true },
     }),
     prisma.ebdPresencaChamada.findMany({
@@ -144,17 +166,44 @@ export async function getMainDashboard(
   ]);
 
   const crescimentoMembros: { name: string; value: number }[] = [];
+  const ofertasPorMes: { name: string; value: number }[] = [];
+  const entradasPorMes: { name: string; value: number }[] = [];
+
   for (let i = 5; i >= 0; i--) {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
     const fim = endOfMonth(d);
-    const count = await prisma.membro.count({
-      where: {
-        ...membroWhere,
-        createdAt: { lte: fim },
-        status: { not: "FALECIDO" },
-      },
-    });
-    crescimentoMembros.push({ name: labelMesAno(d), value: count });
+    const mesLabel = labelMesAno(d);
+
+    const [membrosAteMes, ofertasMes, dizimosMes] = await Promise.all([
+      prisma.membro.count({
+        where: {
+          ...membroWhere,
+          createdAt: { lte: fim },
+          status: { not: "FALECIDO" },
+        },
+      }),
+      prisma.finOferta.aggregate({
+        where: {
+          ...finWhere,
+          data: { gte: d, lte: fim },
+        },
+        _sum: { valor: true },
+      }),
+      prisma.finDizimo.aggregate({
+        where: {
+          ...finWhere,
+          data: { gte: d, lte: fim },
+        },
+        _sum: { valor: true },
+      }),
+    ]);
+
+    const ofertasVal = decimalToNumber(ofertasMes._sum.valor);
+    const dizimosVal = decimalToNumber(dizimosMes._sum.valor);
+
+    crescimentoMembros.push({ name: mesLabel, value: membrosAteMes });
+    ofertasPorMes.push({ name: mesLabel, value: ofertasVal });
+    entradasPorMes.push({ name: mesLabel, value: ofertasVal + dizimosVal });
   }
 
   let presentes = 0;
@@ -168,15 +217,16 @@ export async function getMainDashboard(
   const totalEbd = presentes + faltosos + justificados;
   const taxa = totalEbd > 0 ? Math.round((presentes / totalEbd) * 100) : 0;
 
-  const ofertasValor = decimalToNumber(ofertasAgg._sum.valor);
+  const ofertasMesAtual = ofertasPorMes[ofertasPorMes.length - 1]?.value ?? 0;
   const chamadaLabel = ultimaChamada
     ? formatDateBR(ultimaChamada.data)
-    : dataHoje;
+    : "Sem chamada";
 
   let financeiro: MainDashboardData["financeiro"] = null;
-  if (igrejaId) {
+  const finIgrejaId = igrejaId ?? (await resolveIgrejaAtivaId());
+  if (finIgrejaId) {
     try {
-      const fin = await getDashboardFinanceiro(igrejaId, padrao.deStr, padrao.ateStr);
+      const fin = await getDashboardFinanceiro(finIgrejaId, padrao.deStr, padrao.ateStr);
       financeiro = {
         dizimos: fin.dizimos,
         ofertas: fin.ofertas,
@@ -190,23 +240,28 @@ export async function getMainDashboard(
     }
   }
 
-  const eventBadges = ["Em breve", "Inscrições abertas", "Confirmado"];
+  const diasSemana = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
   return {
     igrejaNome: igreja?.nome ?? null,
+    igrejaTipo: igreja?.tipo ?? null,
     dataHoje,
     kpis: {
       igrejas: igrejasCount,
       membros: membrosCount,
       classesEbd,
       alunosEbd,
-      presentesEbd,
-      ofertas: ofertasValor,
-      patrimonios: 0,
+      presentesEbd: presentesEbdMes,
+      ofertas: financeiro?.ofertas ?? ofertasMesAtual,
+      patrimonios: patrimoniosCount,
     },
     kpiMeta: {
       igrejas: {
-        subtitle: igrejaId ? "Congregação ativa" : "Sede + Filiais",
+        subtitle: igrejaId
+          ? igreja?.tipo === "SEDE"
+            ? "Sede e filiais"
+            : "Congregação ativa"
+          : "Sede + Filiais",
       },
       membros: {
         subtitle:
@@ -214,38 +269,44 @@ export async function getMainDashboard(
             ? `+${membrosSemana} esta semana`
             : "Membros ativos",
       },
-      classesEbd: { subtitle: "Ativas" },
+      classesEbd: { subtitle: "Classes ativas" },
       alunosEbd: {
         subtitle:
           alunosSemana > 0
-            ? `+${alunosSemana} esta semana`
-            : "Matriculados",
+            ? `+${alunosSemana} matrículas na semana`
+            : "Alunos matriculados",
       },
-      presentes: { subtitle: `Última chamada ${chamadaLabel}` },
-      ofertas: { subtitle: `Mês atual · ${dataHoje}` },
-      patrimonios: { subtitle: "Bens cadastrados" },
+      presentes: {
+        subtitle: `Presenças no mês · última chamada ${chamadaLabel}`,
+      },
+      ofertas: {
+        subtitle: financeiro ? "Mês atual (financeiro)" : "Ofertas no mês",
+      },
+      patrimonios: { subtitle: "Bens ativos cadastrados" },
     },
     crescimentoMembros,
-    ofertasPorMes: crescimentoMembros.map((p) => ({ ...p, value: Math.round(p.value * 180) })),
+    ofertasPorMes,
+    entradasPorMes,
     ebdFrequencia: { presentes, faltosos, justificados, taxa },
-    eventos: eventos.map((e, i) => ({
+    eventos: eventos.map((e) => ({
       id: e.id,
       titulo: e.titulo,
       data: formatDateBR(e.dataInicio),
       local: e.local,
-      badge: eventBadges[i] ?? "Em breve",
+      badge: eventoBadge(e.dataInicio, now),
+      href: "/eventos",
     })),
     cultosSemana: cultosSemana.map((c) => {
       const d = c.data;
       const realizado = d.getTime() < now.getTime();
-      const dias = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
       return {
         id: c.id,
-        dia: `${dias[d.getUTCDay()]} ${String(d.getUTCDate()).padStart(2, "0")}`,
+        dia: `${diasSemana[d.getUTCDay()]} ${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}`,
         titulo: c.titulo,
         horario: c.horario,
         local: null,
         status: realizado ? ("realizado" as const) : ("agendado" as const),
+        href: `/cultos/${c.id}`,
       };
     }),
     membrosRecentes: membrosRecentes.map((m) => ({
@@ -253,13 +314,16 @@ export async function getMainDashboard(
       codigo: m.codigo,
       nome: m.nomeCompleto,
       status: MEMBRO_STATUS_LABEL[m.status],
-      ministerio: m.ministerio ?? "—",
+      ministerio: m.cargo?.trim() || m.ministerio?.trim() || "—",
       foto: m.foto,
+      href: `/membros/${m.id}`,
     })),
     resumoHoje: {
-      presenca: presentesEbd,
+      presenca: presentes,
       faltas: faltosos,
-      ofertas: ofertasValor,
+      ofertas: financeiro?.entradas ?? ofertasMesAtual,
+      dizimos: financeiro?.dizimos ?? 0,
+      despesas: financeiro?.despesas ?? 0,
     },
     financeiro,
   };

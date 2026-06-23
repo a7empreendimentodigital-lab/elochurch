@@ -3,8 +3,10 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { listClasses } from "@/services/ebd.service";
+import { deleteClasseAction } from "@/app/ebd/actions";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DataTable } from "@/components/elo/data-table";
+import { EbdTableActions } from "@/components/ebd/ebd-table-actions";
 import { Button } from "@/components/ui/button";
 
 export default async function EbdClassesPage() {
@@ -15,7 +17,7 @@ export default async function EbdClassesPage() {
       <AdminPageHeader
         title="Classes EBD"
         actions={
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/ebd/classes/nova">
               <Plus className="mr-2 h-4 w-4" />
               Nova classe
@@ -47,9 +49,20 @@ export default async function EbdClassesPage() {
             key: "acoes",
             header: "",
             cell: (r) => (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={`/ebd/classes/${r.id}`}>Gerenciar</Link>
-              </Button>
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/ebd/classes/${r.id}`}>Gerenciar</Link>
+                </Button>
+                <EbdTableActions
+                  editHref={`/ebd/classes/${r.id}/editar`}
+                  entityId={r.id}
+                  entityName={r.nome}
+                  deleteTitle="Excluir classe"
+                  deleteDescription={`Excluir "${r.nome}" remove alunos matriculados e todas as chamadas desta classe.`}
+                  redirectAfterDelete="/ebd/classes"
+                  onDelete={deleteClasseAction}
+                />
+              </div>
             ),
           },
         ]}

@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { setIgrejaAtivaAction } from "@/app/actions/igreja-ativa";
+import { createMembroAction, updateMembroAction } from "@/app/membros/actions";
 import { MembroForm } from "@/components/membros/membro-form";
 import type { MembroFormInput } from "@/lib/validations/membro.schema";
-import type { ActionResult } from "@/lib/action-result";
 
 interface IgrejaOption {
   id: string;
@@ -17,9 +18,8 @@ interface MembroFormClientProps {
   codigo?: string;
   defaultValues?: Partial<MembroFormInput>;
   defaultIgrejaId?: string | null;
-  onSubmitAction: (
-    data: MembroFormInput
-  ) => Promise<ActionResult<{ id: string }> | ActionResult>;
+  lockedIgrejaId?: string;
+  lockedCongregacaoNome?: string;
 }
 
 export function MembroFormClient({
@@ -29,13 +29,21 @@ export function MembroFormClient({
   codigo,
   defaultValues,
   defaultIgrejaId,
-  onSubmitAction,
+  lockedIgrejaId,
+  lockedCongregacaoNome,
 }: MembroFormClientProps) {
   const router = useRouter();
 
   const handleSubmit = async (data: MembroFormInput) => {
-    const result = await onSubmitAction(data);
+    const result =
+      mode === "create"
+        ? await createMembroAction(data)
+        : membroId
+          ? await updateMembroAction(membroId, data)
+          : { success: false as const, error: "ID do membro não informado" };
+
     if (result.success) {
+      await setIgrejaAtivaAction(data.igrejaId);
       if (mode === "create" && "data" in result && result.data?.id) {
         router.push(`/membros/${result.data.id}`);
       } else if (mode === "edit" && membroId) {
@@ -56,7 +64,9 @@ export function MembroFormClient({
       igrejas={igrejas}
       codigo={codigo}
       defaultValues={defaultValues}
-      defaultIgrejaId={defaultIgrejaId}
+      defaultIgrejaId={lockedIgrejaId ?? defaultIgrejaId}
+      lockedIgrejaId={lockedIgrejaId}
+      lockedCongregacaoNome={lockedCongregacaoNome}
       onSubmitAction={handleSubmit}
     />
   );

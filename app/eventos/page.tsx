@@ -1,10 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Plus, Eye, Pencil } from "lucide-react";
+import { Plus } from "lucide-react";
 import { listEventos } from "@/services/eventos.service";
 import { formatDateBR } from "@/lib/dates";
+import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { RecordRowActions } from "@/components/admin/record-row-actions";
+import { EventoDeleteButton } from "@/components/eventos/evento-delete-button";
 import { DataTable } from "@/components/elo/data-table";
 import { Button } from "@/components/ui/button";
 
@@ -12,12 +15,12 @@ export default async function EventosPage() {
   const eventos = await listEventos().catch(() => []);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AdminPage>
       <AdminPageHeader
         title="Eventos"
-        description="Agenda de eventos da igreja."
+        description="Agenda e gestão de eventos da congregação."
         actions={
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" asChild>
             <Link href="/eventos/novo">
               <Plus className="mr-2 h-4 w-4" />
               Novo evento
@@ -27,6 +30,8 @@ export default async function EventosPage() {
       />
       <DataTable
         title="Eventos cadastrados"
+        description={`${eventos.length} evento(s)`}
+        getRowKey={(r) => r.id}
         data={eventos}
         columns={[
           { key: "titulo", header: "Título", cell: (r) => r.titulo },
@@ -39,24 +44,17 @@ export default async function EventosPage() {
           { key: "igreja", header: "Igreja", cell: (r) => r.igreja.nome },
           {
             key: "acoes",
-            header: "",
+            header: "Ações",
             cell: (r) => (
-              <div className="flex justify-end gap-1">
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/eventos/${r.id}`}>
-                    <Eye className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/eventos/${r.id}/editar`}>
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+              <RecordRowActions
+                viewHref={`/eventos/${r.id}`}
+                editHref={`/eventos/${r.id}/editar`}
+                deleteSlot={<EventoDeleteButton id={r.id} />}
+              />
             ),
           },
         ]}
       />
-    </div>
+    </AdminPage>
   );
 }

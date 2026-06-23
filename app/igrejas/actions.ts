@@ -7,6 +7,7 @@ import {
   igrejaIdSchema,
   type IgrejaFormInput,
 } from "@/lib/validations/igreja.schema";
+import { guardPanelDelete } from "@/lib/panel-delete-policy.server";
 import {
   createIgreja,
   deleteIgreja,
@@ -80,6 +81,8 @@ export async function updateIgrejaAction(
 }
 
 export async function deleteIgrejaAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete({ requireSedeAdmin: true });
+  if (denied) return denied;
   const idParsed = igrejaIdSchema.safeParse(id);
   if (!idParsed.success) {
     return { success: false, error: "ID inválido" };

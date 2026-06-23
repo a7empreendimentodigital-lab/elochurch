@@ -1,7 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseDateInput } from "@/lib/dates";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
+import { resolveBibleReference } from "@/services/bible.service";
 import type { RelatorioDiarioEbd } from "@/types/ebd";
 import type {
   EbdChamadaInput,
@@ -19,12 +20,16 @@ const classeInclude = {
 // ─── Professores ───
 
 export async function listProfessores(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   return prisma.ebdProfessor.findMany({
     where: id ? { igrejaId: id } : undefined,
     orderBy: { nome: "asc" },
     include: { membro: { select: { id: true, nomeCompleto: true, codigo: true } } },
   });
+}
+
+export async function getProfessorById(id: string) {
+  return prisma.ebdProfessor.findUnique({ where: { id } });
 }
 
 export async function createProfessor(input: EbdProfessorInput) {
@@ -42,12 +47,16 @@ export async function deleteProfessor(id: string) {
 // ─── Superintendentes ───
 
 export async function listSuperintendentes(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   return prisma.ebdSuperintendente.findMany({
     where: id ? { igrejaId: id } : undefined,
     orderBy: { nome: "asc" },
     include: { membro: { select: { id: true, nomeCompleto: true } } },
   });
+}
+
+export async function getSuperintendenteById(id: string) {
+  return prisma.ebdSuperintendente.findUnique({ where: { id } });
 }
 
 export async function createSuperintendente(input: EbdSuperintendenteInput) {
@@ -68,7 +77,7 @@ export async function deleteSuperintendente(id: string) {
 // ─── Classes ───
 
 export async function listClasses(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   return prisma.ebdClasse.findMany({
     where: id ? { igrejaId: id } : undefined,
     include: classeInclude,
@@ -76,11 +85,29 @@ export async function listClasses(igrejaId?: string | null) {
   });
 }
 
+async function enrichClasseBibleRef<T extends { licaoBiblicaRef?: string | null }>(
+  data: T
+) {
+  if (!data.licaoBiblicaRef?.trim()) {
+    return { ...data, bibleBookId: null as string | null, bibleChapterId: null as string | null };
+  }
+  const resolved = await resolveBibleReference(data.licaoBiblicaRef);
+  if (!resolved) {
+    return { ...data, bibleBookId: null as string | null, bibleChapterId: null as string | null };
+  }
+  return {
+    ...data,
+    bibleBookId: resolved.book.id,
+    bibleChapterId: resolved.chapter.id,
+  };
+}
+
 export async function getClasseById(id: string) {
-  return prisma.ebdClasse.findUnique({
+  const row = await prisma.ebdClasse.findUnique({
     where: { id },
     include: {
       ...classeInclude,
+      bibleChapter: { select: { id: true, number: true } },
       igreja: { select: { id: true, nome: true } },
       alunos: {
         where: { ativo: true },
@@ -93,16 +120,34 @@ export async function getClasseById(id: string) {
       },
     },
   });
+  return row;
 }
 
 export async function createClasse(input: EbdClasseInput) {
-  return prisma.ebdClasse.create({ data: input, include: classeInclude });
+  const bible = await enrichClasseBibleRef(input);
+  return prisma.ebdClasse.create({
+    data: {
+      ...input,
+      licaoBiblicaRef: input.licaoBiblicaRef ?? null,
+      harpaHinoNumero: input.harpaHinoNumero ?? null,
+      bibleBookId: bible.bibleBookId,
+      bibleChapterId: bible.bibleChapterId,
+    },
+    include: classeInclude,
+  });
 }
 
 export async function updateClasse(id: string, input: EbdClasseInput) {
+  const bible = await enrichClasseBibleRef(input);
   return prisma.ebdClasse.update({
     where: { id },
-    data: input,
+    data: {
+      ...input,
+      licaoBiblicaRef: input.licaoBiblicaRef ?? null,
+      harpaHinoNumero: input.harpaHinoNumero ?? null,
+      bibleBookId: bible.bibleBookId,
+      bibleChapterId: bible.bibleChapterId,
+    },
     include: classeInclude,
   });
 }
@@ -193,7 +238,7 @@ export async function getChamadaById(id: string) {
 }
 
 export async function listChamadas(classeId?: string, igrejaId?: string | null) {
-  const igreja = igrejaId ?? (await getIgrejaAtivaId());
+  const igreja = igrejaId ?? (await resolveIgrejaAtivaId());
   return prisma.ebdChamada.findMany({
     where: {
       ...(classeId ? { classeId } : {}),
@@ -271,6 +316,10 @@ export async function updateChamada(id: string, input: EbdChamadaInput) {
   return createChamada(input);
 }
 
+export async function deleteChamada(id: string) {
+  return prisma.ebdChamada.delete({ where: { id } });
+}
+
 // ─── Relatório diário ───
 
 export async function getRelatorioDiario(
@@ -337,7 +386,7 @@ export async function getRelatorioDiario(
 }
 
 export async function listAlunos(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   return prisma.ebdAluno.findMany({
     where: id ? { classe: { igrejaId: id } } : {},
     include: {
@@ -349,7 +398,7 @@ export async function listAlunos(igrejaId?: string | null) {
 }
 
 export async function getEbdResumo(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   const where = id ? { igrejaId: id } : {};
 
   const [classes, professores, superintendentes, chamadas] = await Promise.all([

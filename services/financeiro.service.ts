@@ -2,7 +2,9 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseDateInput, formatDateInput } from "@/lib/dates";
 import { decimalToNumber } from "@/lib/money";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
+import { enforceIgrejaIdForWrite } from "@/lib/admin-igreja-scope.server";
+import { getDefaultIgrejaId } from "@/lib/igreja-ativa.server";
 import {
   FIN_FORMA_PAGAMENTO_LABEL,
   FIN_OFERTA_TIPO_LABEL,
@@ -49,7 +51,8 @@ function dateRangeWhere(
 }
 
 async function resolveIgreja(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id =
+    igrejaId ?? (await resolveIgrejaAtivaId()) ?? (await getDefaultIgrejaId());
   if (!id) return { igrejaId: null, igreja: null };
   const igreja = await prisma.igreja.findUnique({
     where: { id },
@@ -76,9 +79,10 @@ export async function listDizimos(igrejaId?: string | null, de?: string, ate?: s
 }
 
 export async function createDizimo(input: FinDizimoInput) {
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
   return prisma.finDizimo.create({
     data: {
-      igrejaId: input.igrejaId,
+      igrejaId,
       membroId: input.membroId,
       valor: input.valor,
       data: parseDateInput(input.data)!,
@@ -114,9 +118,10 @@ export async function listOfertas(igrejaId?: string | null, de?: string, ate?: s
 }
 
 export async function createOferta(input: FinOfertaInput) {
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
   return prisma.finOferta.create({
     data: {
-      igrejaId: input.igrejaId,
+      igrejaId,
       tipo: input.tipo,
       valor: input.valor,
       data: parseDateInput(input.data)!,
@@ -150,9 +155,10 @@ export async function listReceitas(igrejaId?: string | null, de?: string, ate?: 
 }
 
 export async function createReceita(input: FinReceitaInput) {
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
   return prisma.finReceita.create({
     data: {
-      igrejaId: input.igrejaId,
+      igrejaId,
       descricao: input.descricao,
       valor: input.valor,
       data: parseDateInput(input.data)!,
@@ -182,9 +188,10 @@ export async function listDespesas(igrejaId?: string | null, de?: string, ate?: 
 }
 
 export async function createDespesa(input: FinDespesaInput) {
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
   return prisma.finDespesa.create({
     data: {
-      igrejaId: input.igrejaId,
+      igrejaId,
       descricao: input.descricao,
       valor: input.valor,
       data: parseDateInput(input.data)!,
@@ -313,12 +320,14 @@ export async function getFluxoCaixa(
   const items: FluxoCaixaItem[] = [];
 
   for (const d of dizimos) {
+    const nome = d.membro?.nomeCompleto ?? "Membro excluído";
+    const codigo = d.membro?.codigo ?? "—";
     items.push({
       id: d.id,
       data: d.data,
       tipo: "ENTRADA",
       origem: "DIZIMO",
-      descricao: `Dízimo — ${d.membro.nomeCompleto} (${d.membro.codigo})`,
+      descricao: `Dízimo — ${nome} (${codigo})`,
       valor: decimalToNumber(d.valor),
       formaPagamento: d.formaPagamento,
     });
@@ -403,8 +412,8 @@ export async function getRelatorioFinanceiro(
     },
     dizimos: dizimos.map((d) => ({
       data: d.data,
-      membro: d.membro.nomeCompleto,
-      codigo: d.membro.codigo,
+      membro: d.membro?.nomeCompleto ?? "Membro excluído",
+      codigo: d.membro?.codigo ?? "—",
       valor: decimalToNumber(d.valor),
       formaPagamento: d.formaPagamento,
     })),
@@ -458,7 +467,10 @@ export async function listEventosParaOferta(igrejaId: string) {
 
 export async function listMembrosParaFin(igrejaId: string) {
   return prisma.membro.findMany({
-    where: { igrejaId, status: "ATIVO" },
+    where: {
+      igrejaId,
+      status: { in: ["ATIVO", "CONGREGADO", "EXPERIENCIA"] },
+    },
     orderBy: { nomeCompleto: "asc" },
     select: { id: true, nomeCompleto: true, codigo: true },
   });

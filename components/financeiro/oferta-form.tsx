@@ -10,6 +10,11 @@ import { createOfertaAction } from "@/app/financeiro/actions";
 import { FIN_FORMA_PAGAMENTO_LABEL, FIN_OFERTA_TIPO_LABEL } from "@/types/financeiro";
 import type { FinFormaPagamento, FinOfertaTipo } from "@prisma/client";
 import { formatDateBR } from "@/lib/dates";
+import {
+  SELECT_NONE_OPTION,
+  SELECT_NONE_VALUE,
+  selectValueToNull,
+} from "@/lib/select-none";
 
 const tipos = Object.entries(FIN_OFERTA_TIPO_LABEL).map(([value, label]) => ({
   value,
@@ -42,7 +47,7 @@ export function OfertaForm({
   const [valor, setValor] = useState("");
   const [data, setData] = useState(dataDefault);
   const [formaPagamento, setFormaPagamento] = useState<FinFormaPagamento>("DINHEIRO");
-  const [membroId, setMembroId] = useState("");
+  const [membroId, setMembroId] = useState(SELECT_NONE_VALUE);
   const [cultoId, setCultoId] = useState("");
   const [eventoId, setEventoId] = useState("");
   const [doadorNome, setDoadorNome] = useState("");
@@ -58,7 +63,7 @@ export function OfertaForm({
         valor,
         data,
         formaPagamento,
-        membroId: membroId || null,
+        membroId: selectValueToNull(membroId),
         cultoId: tipo === "CULTO" ? cultoId : null,
         eventoId: tipo === "EVENTO" ? eventoId : null,
         doadorNome: doadorNome || null,
@@ -135,7 +140,7 @@ export function OfertaForm({
               value={membroId}
               onValueChange={setMembroId}
               options={[
-                { value: "", label: "—" },
+                SELECT_NONE_OPTION,
                 ...membros.map((m) => ({
                   value: m.id,
                   label: `${m.codigo} — ${m.nomeCompleto}`,

@@ -10,15 +10,10 @@ export function PortalEmpty({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-xl border border-dashed border-border bg-card/30 px-6 py-12 text-center",
-        className
-      )}
-    >
-      <p className="font-medium text-foreground">{title}</p>
+    <div className={cn("py-8 text-left", className)}>
+      <p className="text-sm text-muted-foreground">{title}</p>
       {description && (
-        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       )}
     </div>
   );

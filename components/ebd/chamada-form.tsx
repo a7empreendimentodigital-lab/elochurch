@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { EloCard } from "@/components/elo/elo-card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { createChamadaAction } from "@/app/ebd/actions";
+import { createChamadaAction, updateChamadaAction } from "@/app/ebd/actions";
 import type { EbdChamadaInput } from "@/lib/validations/ebd.schema";
 import { EBD_REGISTRADO_LABEL } from "@/types/ebd";
 
@@ -28,6 +28,11 @@ interface ChamadaFormProps {
   alunos: AlunoRow[];
   professorPadraoId?: string | null;
   superintendentePadraoId?: string | null;
+  chamadaId?: string;
+  initialPresencas?: Record<string, PresencaState>;
+  initialData?: string;
+  initialRegistradoPor?: "PROFESSOR" | "SUPERINTENDENTE";
+  initialObservacaoGeral?: string | null;
 }
 
 type PresencaState = {
@@ -39,6 +44,24 @@ type PresencaState = {
   justificativa: string;
 };
 
+function buildDefaultPresencas(
+  alunos: AlunoRow[],
+  initial?: Record<string, PresencaState>
+): Record<string, PresencaState> {
+  const init: Record<string, PresencaState> = {};
+  alunos.forEach((a) => {
+    init[a.alunoId] = initial?.[a.alunoId] ?? {
+      presente: true,
+      trouxeBiblia: false,
+      trouxeRevista: false,
+      oferta: "",
+      observacao: "",
+      justificativa: "",
+    };
+  });
+  return init;
+}
+
 export function ChamadaForm({
   classeId,
   classeNome,
@@ -48,13 +71,19 @@ export function ChamadaForm({
   alunos,
   professorPadraoId,
   superintendentePadraoId,
+  chamadaId,
+  initialPresencas,
+  initialData,
+  initialRegistradoPor,
+  initialObservacaoGeral,
 }: ChamadaFormProps) {
+  const isEdit = !!chamadaId;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState(dataDefault);
+  const [data, setData] = useState(initialData ?? dataDefault);
   const [registradoPor, setRegistradoPor] = useState<"PROFESSOR" | "SUPERINTENDENTE">(
-    "PROFESSOR"
+    initialRegistradoPor ?? "PROFESSOR"
   );
   const [professorId, setProfessorId] = useState(
     professorPadraoId ?? professores[0]?.id ?? ""
@@ -62,22 +91,13 @@ export function ChamadaForm({
   const [superintendenteId, setSuperintendenteId] = useState(
     superintendentePadraoId ?? superintendentes[0]?.id ?? ""
   );
-  const [observacaoGeral, setObservacaoGeral] = useState("");
+  const [observacaoGeral, setObservacaoGeral] = useState(
+    initialObservacaoGeral ?? ""
+  );
 
-  const [presencas, setPresencas] = useState<Record<string, PresencaState>>(() => {
-    const init: Record<string, PresencaState> = {};
-    alunos.forEach((a) => {
-      init[a.alunoId] = {
-        presente: true,
-        trouxeBiblia: false,
-        trouxeRevista: false,
-        oferta: "",
-        observacao: "",
-        justificativa: "",
-      };
-    });
-    return init;
-  });
+  const [presencas, setPresencas] = useState<Record<string, PresencaState>>(() =>
+    buildDefaultPresencas(alunos, initialPresencas)
+  );
 
   const updatePresenca = (alunoId: string, patch: Partial<PresencaState>) => {
     setPresencas((prev) => ({
@@ -115,7 +135,9 @@ export function ChamadaForm({
     };
 
     startTransition(async () => {
-      const result = await createChamadaAction(input);
+      const result = isEdit && chamadaId
+        ? await updateChamadaAction(chamadaId, input)
+        : await createChamadaAction(input);
       if (!result.success) {
         setError(result.error ?? "Erro ao salvar chamada");
         return;
@@ -276,7 +298,11 @@ export function ChamadaForm({
           Cancelar
         </Button>
         <Button variant="gold" onClick={handleSubmit} disabled={pending}>
-          {pending ? "Salvando..." : "Salvar chamada e ver relatório"}
+          {pending
+            ? "Salvando..."
+            : isEdit
+              ? "Salvar alterações"
+              : "Salvar chamada e ver relatório"}
         </Button>
       </div>
     </div>

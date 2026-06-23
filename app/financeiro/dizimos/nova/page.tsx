@@ -9,14 +9,14 @@ import {
   listMembrosParaFin,
   periodoPadrao,
 } from "@/services/financeiro.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 
 export default async function NovoDizimoPage() {
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   if (!igrejaId) {
     return (
       <p className="text-sm text-muted-foreground">
-        Configure uma igreja ativa para registrar dízimos.
+        Cadastre uma igreja ativa em Igrejas para registrar dízimos.
       </p>
     );
   }

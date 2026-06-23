@@ -26,6 +26,7 @@ export const authOptions: NextAuthOptions = {
           role: "admin",
           adminId: admin.id,
           perfil: admin.perfil,
+          igrejaId: admin.igrejaId,
         };
       },
     }),
@@ -83,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         session.user.adminId = token.adminId as string | undefined;
         session.user.membroId = token.membroId as string | undefined;
         session.user.perfil = token.perfil as string | undefined;
+        session.user.igrejaId = token.igrejaId as string | null | undefined;
       }
       return session;
     },

@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { createIgrejaAction, updateIgrejaAction } from "@/app/igrejas/actions";
 import { IgrejaForm } from "@/components/igrejas/igreja-form";
 import type { IgrejaFormInput } from "@/lib/validations/igreja.schema";
-import type { ActionResult } from "@/app/igrejas/actions";
 
 interface SedeOption {
   id: string;
@@ -15,9 +15,6 @@ interface IgrejaFormClientProps {
   sedes: SedeOption[];
   igrejaId?: string;
   defaultValues?: Partial<IgrejaFormInput>;
-  onSubmitAction: (
-    data: IgrejaFormInput
-  ) => Promise<ActionResult<{ id: string }> | ActionResult>;
 }
 
 export function IgrejaFormClient({
@@ -25,12 +22,17 @@ export function IgrejaFormClient({
   sedes,
   igrejaId,
   defaultValues,
-  onSubmitAction,
 }: IgrejaFormClientProps) {
   const router = useRouter();
 
   const handleSubmit = async (data: IgrejaFormInput) => {
-    const result = await onSubmitAction(data);
+    const result =
+      mode === "create"
+        ? await createIgrejaAction(data)
+        : igrejaId
+          ? await updateIgrejaAction(igrejaId, data)
+          : { success: false as const, error: "ID da igreja não informado" };
+
     if (result.success) {
       if (mode === "create" && "data" in result && result.data?.id) {
         router.push(`/igrejas/${result.data.id}`);
@@ -39,6 +41,7 @@ export function IgrejaFormClient({
       }
       router.refresh();
     }
+
     return {
       success: result.success,
       error: result.success ? undefined : result.error,

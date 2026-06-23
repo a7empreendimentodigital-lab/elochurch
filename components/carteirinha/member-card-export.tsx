@@ -15,11 +15,13 @@ import {
 interface MemberCardExportProps {
   targetId?: string;
   filename?: string;
+  variant?: "gold" | "outline";
 }
 
 export function MemberCardExport({
   targetId = "member-card-export",
   filename = "carteirinha-elochurch",
+  variant = "gold",
 }: MemberCardExportProps) {
   const [loading, setLoading] = useState<"png" | "pdf" | null>(null);
 
@@ -69,7 +71,7 @@ export function MemberCardExport({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="gold" size="sm" disabled={busy}>
+        <Button variant={variant} size="sm" disabled={busy}>
           <Download className="mr-2 h-4 w-4" />
           {busy ? "Gerando…" : "Baixar Carteirinha"}
         </Button>

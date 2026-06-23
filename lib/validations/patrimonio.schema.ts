@@ -1,15 +1,15 @@
 import { z } from "zod";
+import { parseMoneyInput } from "@/lib/money";
+import { isAllowedPatrimonioFotoPath } from "@/lib/patrimonio-upload";
 
 const valorField = z
   .union([z.number().nonnegative(), z.string()])
-  .transform((v) => {
-    const n =
-      typeof v === "string"
-        ? parseFloat(v.replace(/\./g, "").replace(",", "."))
-        : v;
-    if (Number.isNaN(n) || n < 0) throw new Error("Valor inválido");
-    return n;
-  });
+  .refine(
+    (v) => !(typeof v === "string" && v.trim() === ""),
+    { message: "Informe o valor do bem" }
+  )
+  .transform((v) => parseMoneyInput(v))
+  .refine((n) => n > 0, { message: "Valor deve ser maior que zero" });
 
 const categoriaField = z.enum([
   "INSTRUMENTOS",
@@ -23,15 +23,33 @@ const categoriaField = z.enum([
 
 const dataField = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida");
 
+const optionalText = (max: number) =>
+  z.preprocess(
+    (v) => (v === "" || v === undefined ? null : v),
+    z.string().max(max).nullable().optional()
+  );
+
+const patFotoField = z.preprocess(
+  (v) => (v === "" || v === undefined ? null : v),
+  z
+    .string()
+    .max(500)
+    .nullable()
+    .optional()
+    .refine((val) => isAllowedPatrimonioFotoPath(val), {
+      message: "Envie a foto pelo botão de upload.",
+    })
+);
+
 export const patBemSchema = z.object({
-  nome: z.string().min(2).max(200),
+  nome: z.string().min(2, "Nome muito curto").max(200),
   categoria: categoriaField,
-  igrejaId: z.string().cuid(),
-  localizacao: z.string().min(2).max(200),
+  igrejaId: z.string().min(1, "Selecione a igreja").cuid("Igreja inválida"),
+  localizacao: optionalText(200),
   valor: valorField,
-  fornecedor: z.string().max(200).optional().nullable(),
-  notaFiscal: z.string().max(80).optional().nullable(),
-  foto: z.string().max(500).optional().nullable(),
+  fornecedor: optionalText(200),
+  notaFiscal: optionalText(80),
+  foto: patFotoField,
   status: z.enum(["ATIVO", "MANUTENCAO", "BAIXADO"]).default("ATIVO"),
 });
 
@@ -46,13 +64,13 @@ export const patManutencaoSchema = z.object({
     .nullable()
     .transform((v) => {
       if (v === null || v === undefined || v === "") return null;
-      const n =
-        typeof v === "string"
-          ? parseFloat(v.replace(/\./g, "").replace(",", "."))
-          : v;
-      return Number.isNaN(n) ? null : n;
+      const n = parseMoneyInput(v);
+      return n === 0 ? null : n;
     }),
-  responsavel: z.string().max(200).optional().nullable(),
+  responsavel: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().max(200).nullable().optional()
+  ),
   concluida: z.boolean().default(false),
   proximaData: z.string().optional().nullable(),
 });
@@ -61,15 +79,24 @@ export const patInventarioSchema = z.object({
   igrejaId: z.string().cuid(),
   titulo: z.string().min(2).max(200),
   data: dataField,
-  observacao: z.string().max(2000).optional().nullable(),
+  observacao: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().max(2000).nullable().optional()
+  ),
 });
 
 export const patInventarioItemSchema = z.object({
   inventarioId: z.string().cuid(),
   bemId: z.string().cuid(),
   conferido: z.boolean(),
-  localizacaoEncontrada: z.string().max(200).optional().nullable(),
-  observacao: z.string().max(500).optional().nullable(),
+  localizacaoEncontrada: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().max(200).nullable().optional()
+  ),
+  observacao: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().max(500).nullable().optional()
+  ),
 });
 
 export type PatBemInput = z.input<typeof patBemSchema>;

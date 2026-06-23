@@ -1,5 +1,9 @@
 import type { IgrejaStatus, IgrejaTipo, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  assertAdminCanAccessIgreja,
+  getAdminIgrejaScope,
+} from "@/lib/admin-igreja-scope.server";
 import type { IgrejaComSede } from "@/types/igreja";
 import type { IgrejaFormInput } from "@/lib/validations/igreja.schema";
 
@@ -23,7 +27,9 @@ function mapFormToData(input: IgrejaFormInput) {
 }
 
 export async function listIgrejas(): Promise<IgrejaComSede[]> {
+  const scope = await getAdminIgrejaScope();
   return prisma.igreja.findMany({
+    where: scope?.mode === "locked" ? { id: scope.igrejaId } : undefined,
     include: includeSede,
     orderBy: [{ tipo: "asc" }, { nome: "asc" }],
   });
@@ -42,6 +48,7 @@ export async function listSedes(excludeId?: string) {
 }
 
 export async function getIgrejaById(id: string): Promise<IgrejaComSede | null> {
+  await assertAdminCanAccessIgreja(id);
   return prisma.igreja.findUnique({
     where: { id },
     include: includeSede,

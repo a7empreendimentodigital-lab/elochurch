@@ -18,6 +18,14 @@
 # production
 /build
 
+# uploads (manter pasta)
+/public/uploads/membros/*
+!/public/uploads/membros/.gitkeep
+/public/uploads/logo/*
+!/public/uploads/logo/.gitkeep
+/public/uploads/patrimonio/*
+!/public/uploads/patrimonio/.gitkeep
+
 # misc
 .DS_Store
 *.pem
@@ -41,3 +49,5 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations/**/migration_lock.toml
+/prisma/dev.db
+/prisma/dev.db-journal

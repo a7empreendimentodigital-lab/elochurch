@@ -2,8 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { setIgrejaAtivaAction } from "@/app/actions/igreja-ativa";
 import { FormField } from "@/components/elo/form-field";
 import { SelectField } from "@/components/igrejas/select-field";
+import { BemFotoUpload } from "@/components/patrimonio/bem-foto-upload";
 import { Button } from "@/components/ui/button";
 import { EloCard } from "@/components/elo/elo-card";
 import { createBemAction, updateBemAction } from "@/app/patrimonio/actions";
@@ -58,7 +60,7 @@ export function BemForm({
   );
   const [fornecedor, setFornecedor] = useState(initial?.fornecedor ?? "");
   const [notaFiscal, setNotaFiscal] = useState(initial?.notaFiscal ?? "");
-  const [foto, setFoto] = useState(initial?.foto ?? "");
+  const [foto, setFoto] = useState<string | null>(initial?.foto ?? null);
   const [status, setStatus] = useState<PatBemStatus>(
     (initial?.status as PatBemStatus) ?? "ATIVO"
   );
@@ -70,7 +72,7 @@ export function BemForm({
       igrejaId,
       nome,
       categoria,
-      localizacao,
+      localizacao: localizacao.trim() || null,
       valor,
       fornecedor: fornecedor || null,
       notaFiscal: notaFiscal || null,
@@ -86,11 +88,10 @@ export function BemForm({
         setError(result.error ?? "Erro");
         return;
       }
-      if (!initial?.id && result.data?.id) {
-        router.push(`/patrimonio/bens/${result.data.id}`);
-      } else {
-        router.push(redirectTo);
-      }
+
+      await setIgrejaAtivaAction(igrejaId);
+
+      router.push(redirectTo);
       router.refresh();
     });
   };
@@ -121,13 +122,16 @@ export function BemForm({
         />
         <FormField
           label="Localização"
-          required
           value={localizacao}
           onChange={(e) => setLocalizacao(e.target.value)}
+          placeholder="Opcional — ex.: Salão principal"
         />
         <FormField
           label="Valor (R$)"
           required
+          type="text"
+          inputMode="decimal"
+          placeholder="Ex.: 1500 ou 1.500,00"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
         />
@@ -141,12 +145,7 @@ export function BemForm({
           value={notaFiscal}
           onChange={(e) => setNotaFiscal(e.target.value)}
         />
-        <FormField
-          label="URL da foto"
-          value={foto}
-          onChange={(e) => setFoto(e.target.value)}
-          placeholder="https://..."
-        />
+        <BemFotoUpload value={foto} onChange={setFoto} nome={nome || "Bem"} />
         <SelectField
           label="Status"
           value={status}

@@ -28,6 +28,16 @@ export const ebdClasseSchema = z.object({
   sala: z.string().max(80).optional().nullable(),
   professorId: z.string().cuid().optional().nullable(),
   superintendenteId: z.string().cuid().optional().nullable(),
+  licaoBiblicaRef: z.string().max(120).optional().nullable(),
+  harpaHinoNumero: z
+    .union([z.number(), z.string()])
+    .optional()
+    .nullable()
+    .transform((v) => {
+      if (v === null || v === undefined || v === "") return null;
+      const n = typeof v === "string" ? parseInt(v.trim(), 10) : v;
+      return Number.isNaN(n) || n < 1 || n > 640 ? null : n;
+    }),
   ativa: z.boolean().default(true),
 });
 

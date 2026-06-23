@@ -1,8 +1,9 @@
-import type { PatrimonioCategoria, Prisma } from "@prisma/client";
+import { Prisma, type PatrimonioCategoria } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseDateInput } from "@/lib/dates";
-import { decimalToNumber } from "@/lib/money";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { decimalToNumber, parseMoneyInput } from "@/lib/money";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
+import { enforceIgrejaIdForWrite } from "@/lib/admin-igreja-scope.server";
 import type {
   DashboardPatrimonio,
   RelatorioPatrimonio,
@@ -23,7 +24,7 @@ const bemInclude = {
 } satisfies Prisma.PatBemInclude;
 
 async function resolveIgreja(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   if (!id) return { igrejaId: null, igreja: null };
   const igreja = await prisma.igreja.findUnique({
     where: { id },
@@ -82,19 +83,37 @@ export async function getBemByQrToken(token: string) {
   });
 }
 
+async function assertIgrejaExistsForPatrimonio(igrejaId: string) {
+  const igreja = await prisma.igreja.findUnique({
+    where: { id: igrejaId },
+    select: { id: true },
+  });
+  if (!igreja) {
+    throw new Error(
+      "Igreja selecionada não foi encontrada. Atualize a página e escolha a congregação novamente."
+    );
+  }
+}
+
+function parseBemValor(input: PatBemInput & { valor?: number }): Prisma.Decimal {
+  const n =
+    typeof input.valor === "number" ? input.valor : parseMoneyInput(input.valor);
+  return new Prisma.Decimal(n);
+}
+
 export async function createBem(input: PatBemInput & { valor?: number }) {
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
+  await assertIgrejaExistsForPatrimonio(igrejaId);
   const codigo = await generatePatrimonioCodigo();
-  const valor =
-    typeof input.valor === "number"
-      ? input.valor
-      : parseFloat(String(input.valor).replace(/\./g, "").replace(",", ".")) || 0;
+  const valor = parseBemValor(input);
+
   return prisma.patBem.create({
     data: {
       codigo,
       nome: input.nome.trim(),
       categoria: input.categoria,
-      igrejaId: input.igrejaId,
-      localizacao: input.localizacao.trim(),
+      igreja: { connect: { id: igrejaId } },
+      localizacao: input.localizacao?.trim() || null,
       valor,
       fornecedor: input.fornecedor ?? null,
       notaFiscal: input.notaFiscal ?? null,
@@ -106,17 +125,17 @@ export async function createBem(input: PatBemInput & { valor?: number }) {
 }
 
 export async function updateBem(id: string, input: PatBemInput & { valor?: number }) {
-  const valor =
-    typeof input.valor === "number"
-      ? input.valor
-      : parseFloat(String(input.valor).replace(/\./g, "").replace(",", ".")) || 0;
+  const igrejaId = await enforceIgrejaIdForWrite(input.igrejaId);
+  await assertIgrejaExistsForPatrimonio(igrejaId);
+  const valor = parseBemValor(input);
+
   return prisma.patBem.update({
     where: { id },
     data: {
       nome: input.nome.trim(),
       categoria: input.categoria,
-      igrejaId: input.igrejaId,
-      localizacao: input.localizacao.trim(),
+      igreja: { connect: { id: igrejaId } },
+      localizacao: input.localizacao?.trim() || null,
       valor,
       fornecedor: input.fornecedor ?? null,
       notaFiscal: input.notaFiscal ?? null,

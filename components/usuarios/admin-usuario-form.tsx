@@ -8,7 +8,8 @@ import { SelectField } from "@/components/igrejas/select-field";
 import { Button } from "@/components/ui/button";
 import { EloCard } from "@/components/elo/elo-card";
 import { createAdminUsuarioAction } from "@/app/usuarios/actions";
-import { ADMIN_PERFIL_LABEL, ADMIN_PERFIS } from "@/types/admin";
+import { ADMIN_PERFIL_LABEL } from "@/types/admin";
+import { SELECT_NONE_VALUE, selectValueToNull } from "@/lib/select-none";
 
 interface IgrejaOption {
   id: string;
@@ -17,17 +18,27 @@ interface IgrejaOption {
 
 interface AdminUsuarioFormProps {
   igrejas: IgrejaOption[];
+  perfisPermitidos: AdminPerfil[];
+  defaultPerfil: AdminPerfil;
+  filialOnly?: boolean;
+  lockedIgrejaId?: string | null;
 }
 
-export function AdminUsuarioForm({ igrejas }: AdminUsuarioFormProps) {
+export function AdminUsuarioForm({
+  igrejas,
+  perfisPermitidos,
+  defaultPerfil,
+  filialOnly = false,
+  lockedIgrejaId = null,
+}: AdminUsuarioFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [perfil, setPerfil] = useState<AdminPerfil>("ADMINISTRADOR_GERAL");
-  const [igrejaId, setIgrejaId] = useState("");
+  const [perfil, setPerfil] = useState<AdminPerfil>(defaultPerfil);
+  const [igrejaId, setIgrejaId] = useState(lockedIgrejaId ?? "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +49,7 @@ export function AdminUsuarioForm({ igrejas }: AdminUsuarioFormProps) {
         email,
         senha,
         perfil,
-        igrejaId: igrejaId || null,
+        igrejaId: selectValueToNull(igrejaId),
       });
       if (!result.success) {
         setError(result.error ?? "Erro ao criar usuário");
@@ -73,17 +84,34 @@ export function AdminUsuarioForm({ igrejas }: AdminUsuarioFormProps) {
           value={perfil}
           onValueChange={(v) => setPerfil(v as AdminPerfil)}
           required
-          options={ADMIN_PERFIS.map((p) => ({
+          options={perfisPermitidos.map((p) => ({
             value: p,
             label: ADMIN_PERFIL_LABEL[p],
           }))}
         />
+        {filialOnly && (
+          <p className="text-xs text-muted-foreground">
+            Perfis de rede (Administrador Geral e Pastor Presidente) não estão
+            disponíveis para cadastro pela filial.
+          </p>
+        )}
         {igrejas.length > 0 && (
           <SelectField
-            label="Igreja (opcional)"
+            label="Congregação vinculada"
             value={igrejaId}
             onValueChange={setIgrejaId}
-            options={[{ value: "", label: "— Todas / rede —" }, ...igrejas.map((i) => ({ value: i.id, label: i.nome }))]}
+            disabled={!!lockedIgrejaId}
+            options={
+              filialOnly || lockedIgrejaId
+                ? igrejas.map((i) => ({ value: i.id, label: i.nome }))
+                : [
+                    {
+                      value: SELECT_NONE_VALUE,
+                      label: "— Rede inteira (sede / geral) —",
+                    },
+                    ...igrejas.map((i) => ({ value: i.id, label: i.nome })),
+                  ]
+            }
           />
         )}
         <Button type="submit" variant="gold" disabled={pending}>

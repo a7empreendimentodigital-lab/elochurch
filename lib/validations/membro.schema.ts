@@ -21,9 +21,22 @@ const optionalString = (max: number) =>
     .nullable()
     .transform((v) => (v && v.trim() !== "" ? v.trim() : null));
 
+const fotoUploadSchema = z
+  .string()
+  .max(500)
+  .optional()
+  .nullable()
+  .transform((v) => (v && v.trim() !== "" ? v.trim() : null))
+  .refine((v) => v === null || !/^https?:\/\//i.test(v), {
+    message: "Não use link de imagem. Envie o arquivo pelo upload.",
+  })
+  .refine((v) => v === null || v.startsWith("/uploads/membros/"), {
+    message: "Envie a foto pelo botão de upload.",
+  });
+
 export const membroFormSchema = z.object({
   igrejaId: z.string().cuid("Selecione a congregação (igreja_id)"),
-  foto: optionalString(500),
+  foto: fotoUploadSchema,
   nomeCompleto: z
     .string()
     .min(3, "Nome completo obrigatório")
@@ -47,6 +60,7 @@ export const membroFormSchema = z.object({
     ["SOLTEIRO", "CASADO", "DIVORCIADO", "VIUVO", "UNIAO_ESTAVEL", "OUTRO"],
     { required_error: "Selecione o estado civil" }
   ),
+  nomeEsposa: optionalString(200),
   profissao: optionalString(120),
   telefone: z
     .string()

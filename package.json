@@ -3,15 +3,30 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "npm run db:dev:sync && next dev",
+    "dev:turbo": "npm run db:dev:sync && next dev --turbopack",
+    "dev:clean": "npm run clean && npm run dev",
+    "clean": "rm -rf .next",
     "build": "next build",
-    "start": "next start",
+    "start": "npm run build && next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "npx tsx prisma/seed.ts"
+    "db:seed": "npx tsx prisma/seed.ts",
+    "import:bible": "npx tsx scripts/import-bible.ts",
+    "bible:import": "npx tsx scripts/import-bible.ts --file pt_acf.json --full",
+    "import:harpa": "npx tsx scripts/import-harpa.ts",
+    "harpa:import": "npx tsx scripts/import-harpa.ts --file harpa_crista_640_hinos.json --full",
+    "db:dev:sync": "prisma db push && npm run db:seed",
+    "db:dev:reset": "DEV_SEED_RESET=1 npm run db:dev:sync",
+    "db:use:mysql": "cp prisma/schema.mysql.prisma prisma/schema.prisma && prisma generate",
+    "db:use:sqlite": "cp prisma/schema.sqlite.prisma prisma/schema.prisma && prisma generate",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

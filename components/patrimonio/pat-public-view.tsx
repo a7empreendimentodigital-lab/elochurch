@@ -9,7 +9,7 @@ export interface PatPublicData {
   codigo: string;
   nome: string;
   categoria: PatrimonioCategoria;
-  localizacao: string;
+  localizacao: string | null;
   valor: number;
   status: PatBemStatus;
   foto: string | null;
@@ -29,7 +29,7 @@ export function PatPublicView({ data }: { data: PatPublicData }) {
             alt={data.nome}
             fill
             className="object-cover"
-            unoptimized
+            unoptimized={data.foto.startsWith("/uploads/")}
           />
         </div>
       )}
@@ -43,10 +43,12 @@ export function PatPublicView({ data }: { data: PatPublicData }) {
           <dt className="text-muted-foreground">Igreja</dt>
           <dd>{data.igreja.nome}</dd>
         </div>
-        <div>
-          <dt className="text-muted-foreground">Localização</dt>
-          <dd>{data.localizacao}</dd>
-        </div>
+        {data.localizacao && (
+          <div>
+            <dt className="text-muted-foreground">Localização</dt>
+            <dd>{data.localizacao}</dd>
+          </div>
+        )}
         <div>
           <dt className="text-muted-foreground">Valor patrimonial</dt>
           <dd className="font-medium text-gold">{formatBRL(data.valor)}</dd>

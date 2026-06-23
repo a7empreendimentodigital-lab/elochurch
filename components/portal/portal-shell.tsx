@@ -1,10 +1,9 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import Image from "next/image";
 import { LogOut } from "lucide-react";
+import { EloLogo } from "@/components/elo/logo";
 import { PortalNav } from "@/components/portal/portal-nav";
-import { DecorativeCurve } from "@/components/elo/decorative-curve";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -36,34 +35,21 @@ export function PortalShell({
     .toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-background elo-gradient-bg">
+    <div className="flex min-h-screen bg-background">
       <aside className="hidden w-56 shrink-0 border-r border-border bg-sidebar md:flex md:flex-col">
-        <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-          <Image
-            src="/brand/icone.png"
-            alt="EloChurch"
-            width={32}
-            height={32}
-            className="rounded-md"
-          />
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              Elo<span className="text-gold">Church</span>
-            </p>
-            <p className="text-[10px] text-muted-foreground">Portal do Membro</p>
-          </div>
+        <div className="flex flex-col items-center border-b border-sidebar-border px-4 py-5">
+          <EloLogo variant="vertical" size="md" href="/portal" className="w-full" />
+          <p className="mt-2 text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Portal do Membro
+          </p>
         </div>
         <PortalNav />
       </aside>
 
-      <div className="relative flex min-w-0 flex-1 flex-col">
-        <DecorativeCurve position="top-left" className="opacity-30" />
-
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-md md:px-6">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 md:border-border md:bg-background md:px-6">
           <div className="min-w-0 md:hidden">
-            <p className="text-sm font-semibold">
-              Elo<span className="text-gold">Church</span>
-            </p>
+            <EloLogo variant="horizontal" size="sm" href="/portal" />
           </div>
           <div className="hidden min-w-0 md:block">
             {title && (
@@ -80,9 +66,9 @@ export function PortalShell({
                 <span className="max-w-[140px] truncate text-sm font-medium">
                   {membro.nome}
                 </span>
-                <Avatar className="h-8 w-8 border border-gold/30">
+                <Avatar className="h-8 w-8 border border-border">
                   {membro.foto && <AvatarImage src={membro.foto} alt={membro.nome} />}
-                  <AvatarFallback className="bg-gold/15 text-xs text-gold">
+                  <AvatarFallback className="bg-muted text-xs text-muted-foreground">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -91,7 +77,7 @@ export function PortalShell({
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-gold"
+              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:text-muted-foreground md:hover:bg-muted md:hover:text-foreground"
               onClick={() => signOut({ callbackUrl: "/portal/login" })}
               aria-label="Sair"
             >

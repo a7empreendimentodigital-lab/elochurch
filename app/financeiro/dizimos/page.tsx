@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { listDizimos, periodoPadrao } from "@/services/financeiro.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { formatDateBR } from "@/lib/dates";
 import { formatBRL, decimalToNumber } from "@/lib/money";
 import { FIN_FORMA_PAGAMENTO_LABEL } from "@/types/financeiro";
@@ -20,7 +20,7 @@ export default async function DizimosPage({
   searchParams: Promise<{ de?: string; ate?: string }>;
 }) {
   const params = await searchParams;
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const padrao = periodoPadrao();
   const de = params.de ?? padrao.deStr;
   const ate = params.ate ?? padrao.ateStr;
@@ -34,7 +34,7 @@ export default async function DizimosPage({
 
   const data = rows.map((d) => ({
     id: d.id,
-    membro: d.membro.nomeCompleto,
+    membro: d.membro?.nomeCompleto ?? "Membro excluído",
     valor: formatBRL(decimalToNumber(d.valor)),
     data: formatDateBR(d.data),
     forma: FIN_FORMA_PAGAMENTO_LABEL[d.formaPagamento],

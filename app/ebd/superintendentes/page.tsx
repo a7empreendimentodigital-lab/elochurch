@@ -3,8 +3,10 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { listSuperintendentes } from "@/services/ebd.service";
+import { deleteSuperintendenteAction } from "@/app/ebd/actions";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DataTable } from "@/components/elo/data-table";
+import { EbdTableActions } from "@/components/ebd/ebd-table-actions";
 import { Button } from "@/components/ui/button";
 
 export default async function EbdSuperintendentesPage() {
@@ -15,7 +17,7 @@ export default async function EbdSuperintendentesPage() {
       <AdminPageHeader
         title="Superintendentes EBD"
         actions={
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/ebd/superintendentes/nova">
               <Plus className="mr-2 h-4 w-4" />
               Novo superintendente
@@ -30,6 +32,20 @@ export default async function EbdSuperintendentesPage() {
           { key: "nome", header: "Nome", cell: (r) => r.nome },
           { key: "telefone", header: "Telefone", cell: (r) => r.telefone ?? "—" },
           { key: "email", header: "E-mail", cell: (r) => r.email ?? "—" },
+          {
+            key: "acoes",
+            header: "",
+            cell: (r) => (
+              <EbdTableActions
+                editHref={`/ebd/superintendentes/${r.id}/editar`}
+                entityId={r.id}
+                entityName={r.nome}
+                deleteTitle="Excluir superintendente"
+                redirectAfterDelete="/ebd/superintendentes"
+                onDelete={deleteSuperintendenteAction}
+              />
+            ),
+          },
         ]}
       />
       <Button variant="link" asChild>

@@ -1,6 +1,10 @@
 import bcrypt from "bcryptjs";
 import type { AdminPerfil } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  assertCanAssignAdminPerfil,
+  resolveAdminUsuarioCreateIgrejaId,
+} from "@/lib/admin-perfil-assign-policy.server";
 
 export async function listAdminUsuarios() {
   return prisma.adminUsuario.findMany({
@@ -23,6 +27,12 @@ export async function createAdminUsuario(input: {
   perfil: AdminPerfil;
   igrejaId?: string | null;
 }) {
+  await assertCanAssignAdminPerfil(input.perfil);
+  const igrejaId = await resolveAdminUsuarioCreateIgrejaId(
+    input.igrejaId,
+    input.perfil
+  );
+
   const email = input.email.trim().toLowerCase();
   const senhaHash = await bcrypt.hash(input.senha, 10);
   return prisma.adminUsuario.create({
@@ -31,7 +41,7 @@ export async function createAdminUsuario(input: {
       email,
       senhaHash,
       perfil: input.perfil,
-      igrejaId: input.igrejaId ?? null,
+      igrejaId,
       ativo: true,
     },
   });

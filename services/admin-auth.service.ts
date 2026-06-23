@@ -11,6 +11,7 @@ export type AdminSessionUser = {
   nome: string;
   email: string;
   perfil: string;
+  igrejaId: string | null;
 };
 
 export async function authenticateAdmin(
@@ -33,6 +34,7 @@ export async function authenticateAdmin(
     nome: usuario.nome,
     email: usuario.email,
     perfil: usuario.perfil,
+    igrejaId: usuario.igrejaId,
   };
 }
 

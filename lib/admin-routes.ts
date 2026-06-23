@@ -20,15 +20,20 @@ export const ADMIN_PREFIXES = [
   "/igrejas",
   "/membros",
   "/ebd",
+  "/biblia",
+  "/harpa",
   "/cultos",
+  "/central-culto",
   "/eventos",
   "/financeiro",
   "/patrimonio",
   "/carteirinhas",
+  "/documentos",
   "/usuarios",
   "/permissoes",
   "/relatorios",
   "/configuracoes",
+  "/busca",
 ] as const;
 
 export function isPublicPath(path: string): boolean {

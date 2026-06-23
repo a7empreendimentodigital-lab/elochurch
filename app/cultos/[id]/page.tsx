@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Radio } from "lucide-react";
+import { CultoDeleteButton } from "@/components/cultos/culto-delete-button";
 import { getCultoById } from "@/services/cultos.service";
 import { formatDateBR } from "@/lib/dates";
 import { EloCard } from "@/components/elo/elo-card";
@@ -45,12 +46,21 @@ export default async function CultoDetailPage({ params }: PageProps) {
           </div>
         </dl>
       </EloCard>
-      <Button variant="outline" asChild>
-        <Link href={`/cultos/${id}/editar`}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Editar
-        </Link>
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="gold" asChild>
+          <Link href={`/central-culto/${id}`}>
+            <Radio className="mr-2 h-4 w-4" />
+            Central do Culto
+          </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href={`/cultos/${id}/editar`}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Editar
+          </Link>
+        </Button>
+        <CultoDeleteButton id={id} redirectTo="/cultos" showLabel />
+      </div>
     </div>
   );
 }

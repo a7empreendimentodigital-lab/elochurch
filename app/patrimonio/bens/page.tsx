@@ -1,17 +1,20 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { Plus, Eye } from "lucide-react";
+import { Plus } from "lucide-react";
 import { listBens } from "@/services/patrimonio.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { formatBRL, decimalToNumber } from "@/lib/money";
 import { PAT_CATEGORIA_LABEL } from "@/types/patrimonio";
+import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { RecordRowActions } from "@/components/admin/record-row-actions";
+import { DeleteBemButton } from "@/components/patrimonio/pat-delete-actions";
 import { DataTable } from "@/components/elo/data-table";
 import { Button } from "@/components/ui/button";
 
 export default async function PatrimonioBensPage() {
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const bens = await listBens(igrejaId).catch(() => []);
 
   const data = bens.map((b) => ({
@@ -21,11 +24,12 @@ export default async function PatrimonioBensPage() {
     categoria: PAT_CATEGORIA_LABEL[b.categoria],
     igreja: b.igreja.nome,
     valor: formatBRL(decimalToNumber(b.valor)),
+    localizacao: b.localizacao ?? "—",
     fornecedor: b.fornecedor ?? "—",
   }));
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AdminPage>
       <AdminPageHeader
         title="Bens patrimoniais"
         actions={
@@ -39,23 +43,28 @@ export default async function PatrimonioBensPage() {
       />
       <DataTable
         title="Cadastro de bens"
+        description={`${bens.length} bem(ns) cadastrado(s)`}
+        getRowKey={(r) => r.id}
         data={data}
         columns={[
-          { key: "codigo", header: "Código", cell: (r) => r.codigo },
+          { key: "codigo", header: "Código", cell: (r) => (
+            <span className="font-mono text-xs text-gold">{r.codigo}</span>
+          ) },
           { key: "nome", header: "Nome", cell: (r) => r.nome },
           { key: "categoria", header: "Categoria", cell: (r) => r.categoria },
+          { key: "localizacao", header: "Localização", cell: (r) => r.localizacao },
           { key: "igreja", header: "Igreja", cell: (r) => r.igreja },
           { key: "valor", header: "Valor", cell: (r) => r.valor },
           { key: "fornecedor", header: "Fornecedor", cell: (r) => r.fornecedor },
           {
             key: "acoes",
-            header: "",
+            header: "Ações",
             cell: (r) => (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={`/patrimonio/bens/${r.id}`}>
-                  <Eye className="h-4 w-4" />
-                </Link>
-              </Button>
+              <RecordRowActions
+                viewHref={`/patrimonio/bens/${r.id}`}
+                editHref={`/patrimonio/bens/${r.id}/editar`}
+                deleteSlot={<DeleteBemButton id={r.id} />}
+              />
             ),
           },
         ]}
@@ -63,6 +72,6 @@ export default async function PatrimonioBensPage() {
       <Button variant="link" asChild>
         <Link href="/patrimonio">← Patrimônio</Link>
       </Button>
-    </div>
+    </AdminPage>
   );
 }

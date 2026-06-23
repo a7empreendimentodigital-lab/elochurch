@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRelatorioFinanceiro } from "@/services/financeiro.service";
 import { generateRelatorioFinanceiroPdf } from "@/services/financeiro-pdf.service";
 import { finPeriodoSchema } from "@/lib/validations/financeiro.schema";
+import { requireAdminApiForIgreja } from "@/lib/financeiro-api-auth";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -13,6 +14,11 @@ export async function GET(request: NextRequest) {
 
   if (!igrejaId) {
     return NextResponse.json({ error: "igrejaId obrigatório" }, { status: 400 });
+  }
+
+  const session = await requireAdminApiForIgreja(igrejaId);
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   const parsed = finPeriodoSchema.safeParse({ de, ate });

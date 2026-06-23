@@ -5,11 +5,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { listIgrejas } from "@/services/igrejas.service";
 import { getMembroById, membroToFormInput } from "@/services/membros.service";
-import { updateMembroAction } from "@/app/membros/actions";
 import { membroIdSchema } from "@/lib/validations/membro.schema";
 import { MembroFormClient } from "@/components/membros/membro-form-client";
 import { Button } from "@/components/ui/button";
-import type { MembroFormInput } from "@/lib/validations/membro.schema";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -37,8 +35,6 @@ export default async function EditarMembroPage({ params }: PageProps) {
   if (!membro) notFound();
 
   const defaultValues = membroToFormInput(membro);
-  const boundUpdate = (data: MembroFormInput) =>
-    updateMembroAction(parsed.data, data);
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -54,7 +50,6 @@ export default async function EditarMembroPage({ params }: PageProps) {
         membroId={parsed.data}
         codigo={membro.codigo}
         defaultValues={defaultValues}
-        onSubmitAction={boundUpdate}
       />
     </div>
   );

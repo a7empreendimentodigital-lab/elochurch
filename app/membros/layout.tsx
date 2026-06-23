@@ -1,4 +1,5 @@
-import { AdminShell } from "@/components/layout/admin-shell";
+import { AdminShellWithIgreja } from "@/components/layout/admin-shell-with-igreja";
+export const dynamic = "force-dynamic";
 
 export default function MembrosLayout({
   children,
@@ -6,8 +7,8 @@ export default function MembrosLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AdminShell>
+    <AdminShellWithIgreja>
       {children}
-    </AdminShell>
+    </AdminShellWithIgreja>
   );
 }

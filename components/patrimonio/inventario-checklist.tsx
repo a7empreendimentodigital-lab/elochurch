@@ -103,7 +103,8 @@ function InventarioItemRow({
           <p className="font-mono text-sm text-gold">{local.codigo}</p>
           <p className="font-medium">{local.nome}</p>
           <p className="text-xs text-muted-foreground">
-            {PAT_CATEGORIA_LABEL[local.categoria]} · {local.localizacao}
+            {PAT_CATEGORIA_LABEL[local.categoria]}
+            {local.localizacao ? ` · ${local.localizacao}` : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { listAlunos } from "@/services/ebd.service";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DataTable } from "@/components/elo/data-table";
+import { EbdAlunoRowActions } from "@/components/ebd/ebd-aluno-row-actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -33,6 +34,17 @@ export default async function EbdAlunosPage() {
               <Badge variant={r.ativo ? "default" : "secondary"}>
                 {r.ativo ? "Ativo" : "Inativo"}
               </Badge>
+            ),
+          },
+          {
+            key: "acoes",
+            header: "",
+            cell: (r) => (
+              <EbdAlunoRowActions
+                alunoId={r.id}
+                classeId={r.classeId}
+                ativo={r.ativo}
+              />
             ),
           },
         ]}

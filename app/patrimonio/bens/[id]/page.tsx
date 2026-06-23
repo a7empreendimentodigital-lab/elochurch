@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 import { getBemById, getPatrimonioPublicUrl } from "@/services/patrimonio.service";
 import { PatrimonioQr } from "@/components/patrimonio/patrimonio-qr";
+import { DeleteBemButton } from "@/components/patrimonio/pat-delete-actions";
 import { EloCard } from "@/components/elo/elo-card";
 import { Button } from "@/components/ui/button";
 import { formatBRL, decimalToNumber } from "@/lib/money";
@@ -42,6 +43,7 @@ export default async function BemDetailPage({ params }: PageProps) {
             Manutenção
           </Link>
         </Button>
+        <DeleteBemButton id={id} redirectTo="/patrimonio/bens" showLabel />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -56,10 +58,12 @@ export default async function BemDetailPage({ params }: PageProps) {
               <dt className="text-muted-foreground">Igreja</dt>
               <dd>{bem.igreja.nome}</dd>
             </div>
-            <div>
-              <dt className="text-muted-foreground">Localização</dt>
-              <dd>{bem.localizacao}</dd>
-            </div>
+            {bem.localizacao && (
+              <div>
+                <dt className="text-muted-foreground">Localização</dt>
+                <dd>{bem.localizacao}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-muted-foreground">Valor</dt>
               <dd className="font-medium text-gold">
@@ -90,7 +94,7 @@ export default async function BemDetailPage({ params }: PageProps) {
                 alt={bem.nome}
                 fill
                 className="object-cover"
-                unoptimized
+                unoptimized={bem.foto.startsWith("/uploads/")}
               />
             </div>
           )}

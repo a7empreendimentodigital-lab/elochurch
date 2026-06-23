@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import {
-  Wallet,
   HandCoins,
   Gift,
   TrendingUp,
@@ -12,16 +11,16 @@ import {
   Plus,
 } from "lucide-react";
 import { getDashboardFinanceiro, periodoPadrao } from "@/services/financeiro.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { formatBRL } from "@/lib/money";
+import { AdminPage } from "@/components/admin/admin-page";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { StatCard } from "@/components/elo/stat-card";
 import { ModuleHub } from "@/components/admin/module-hub";
 import { Button } from "@/components/ui/button";
 
 export default async function FinanceiroPage() {
   const padrao = periodoPadrao();
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const fin = await getDashboardFinanceiro(igrejaId, padrao.deStr, padrao.ateStr).catch(
     () => ({
       dizimos: 0,
@@ -34,21 +33,57 @@ export default async function FinanceiroPage() {
   );
 
   const links = [
-    { href: "/financeiro/dizimos", label: "Dízimos", icon: HandCoins },
-    { href: "/financeiro/ofertas", label: "Ofertas", icon: Gift },
-    { href: "/financeiro/receitas", label: "Receitas", icon: TrendingUp },
-    { href: "/financeiro/despesas", label: "Despesas", icon: TrendingDown },
-    { href: "/financeiro/fluxo-caixa", label: "Fluxo de Caixa", icon: ArrowLeftRight },
-    { href: "/financeiro/relatorios", label: "Relatórios", icon: FileBarChart },
+    {
+      href: "/financeiro/dizimos",
+      label: "Dízimos",
+      icon: HandCoins,
+      description: "Contribuições",
+      iconTone: "gold" as const,
+    },
+    {
+      href: "/financeiro/ofertas",
+      label: "Ofertas",
+      icon: Gift,
+      description: "Culto e eventos",
+      iconTone: "emerald" as const,
+    },
+    {
+      href: "/financeiro/receitas",
+      label: "Receitas",
+      icon: TrendingUp,
+      description: "Outras entradas",
+      iconTone: "teal" as const,
+    },
+    {
+      href: "/financeiro/despesas",
+      label: "Despesas",
+      icon: TrendingDown,
+      description: "Saídas",
+      iconTone: "amber" as const,
+    },
+    {
+      href: "/financeiro/fluxo-caixa",
+      label: "Fluxo de caixa",
+      icon: ArrowLeftRight,
+      description: "Movimentação",
+      iconTone: "indigo" as const,
+    },
+    {
+      href: "/financeiro/relatorios",
+      label: "Relatórios",
+      icon: FileBarChart,
+      description: "PDF e Excel",
+      iconTone: "navy" as const,
+    },
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AdminPage>
       <AdminPageHeader
         title="Financeiro"
-        description="Dízimos, ofertas, receitas, despesas e fluxo de caixa."
+        description="Dízimos, ofertas, receitas, despesas e fluxo de caixa do mês."
         actions={
-          <Button variant="gold" size="sm" asChild>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" asChild>
             <Link href="/financeiro/dizimos/nova">
               <Plus className="mr-2 h-4 w-4" />
               Lançamento
@@ -57,20 +92,24 @@ export default async function FinanceiroPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <StatCard title="Dízimos" value={formatBRL(fin.dizimos)} icon={HandCoins} variant="gold" />
-        <StatCard title="Ofertas" value={formatBRL(fin.ofertas)} icon={Gift} />
-        <StatCard title="Receitas" value={formatBRL(fin.receitas)} icon={TrendingUp} />
-        <StatCard title="Despesas" value={formatBRL(fin.despesas)} icon={TrendingDown} />
-        <StatCard
-          title="Saldo"
-          value={formatBRL(fin.saldo)}
-          icon={Wallet}
-          variant={fin.saldo >= 0 ? "success" : "warning"}
-        />
+      <div className="grid grid-cols-2 gap-6 border-b border-border pb-6 sm:grid-cols-3 xl:grid-cols-5">
+        {[
+          { label: "Dízimos", value: formatBRL(fin.dizimos) },
+          { label: "Ofertas", value: formatBRL(fin.ofertas) },
+          { label: "Receitas", value: formatBRL(fin.receitas) },
+          { label: "Despesas", value: formatBRL(fin.despesas) },
+          { label: "Saldo", value: formatBRL(fin.saldo) },
+        ].map((stat) => (
+          <div key={stat.label} className="space-y-1">
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <p className="text-xl font-bold tabular-nums text-foreground sm:text-2xl">
+              {stat.value}
+            </p>
+          </div>
+        ))}
       </div>
 
-      <ModuleHub links={links} />
-    </div>
+      <ModuleHub title="Módulos financeiros" links={links} />
+    </AdminPage>
   );
 }

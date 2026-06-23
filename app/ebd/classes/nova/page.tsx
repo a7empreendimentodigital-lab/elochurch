@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClasseAction } from "@/app/ebd/actions";
 import { EbdQuickForm } from "@/components/ebd/ebd-quick-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,6 @@ export default async function NovaClasseEbdPage() {
         defaultIgrejaId={defaultIgrejaId}
         professores={professores.map((p) => ({ id: p.id, nome: p.nome }))}
         superintendentes={superintendentes.map((s) => ({ id: s.id, nome: s.nome }))}
-        onSubmit={(data) => createClasseAction(data as Parameters<typeof createClasseAction>[0])}
         redirectTo="/ebd/classes"
       />
     </div>

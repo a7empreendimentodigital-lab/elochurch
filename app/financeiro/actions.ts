@@ -22,6 +22,7 @@ import {
   deleteReceita,
 } from "@/services/financeiro.service";
 import { formatZodErrors, type ActionResult } from "@/lib/action-result";
+import { guardPanelDelete } from "@/lib/panel-delete-policy.server";
 
 function revalidateFin() {
   revalidatePath("/financeiro");
@@ -54,6 +55,8 @@ export async function createDizimoAction(
 }
 
 export async function deleteDizimoAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   try {
     await deleteDizimo(id);
     revalidateFin();
@@ -84,6 +87,8 @@ export async function createOfertaAction(
 }
 
 export async function deleteOfertaAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   try {
     await deleteOferta(id);
     revalidateFin();
@@ -114,6 +119,8 @@ export async function createReceitaAction(
 }
 
 export async function deleteReceitaAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   try {
     await deleteReceita(id);
     revalidateFin();
@@ -144,6 +151,8 @@ export async function createDespesaAction(
 }
 
 export async function deleteDespesaAction(id: string): Promise<ActionResult> {
+  const denied = await guardPanelDelete();
+  if (denied) return denied;
   try {
     await deleteDespesa(id);
     revalidateFin();

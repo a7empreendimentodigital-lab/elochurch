@@ -1,13 +1,11 @@
-import { AdminShell } from "@/components/layout/admin-shell";
+import { AdminShellWithIgreja } from "@/components/layout/admin-shell-with-igreja";
+
+export const dynamic = "force-dynamic";
 
 export default function FinanceiroLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AdminShell>
-      {children}
-    </AdminShell>
-  );
+  return <AdminShellWithIgreja>{children}</AdminShellWithIgreja>;
 }

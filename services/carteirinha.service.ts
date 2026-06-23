@@ -21,6 +21,7 @@ const memberCardSelect = {
   status: true,
   nascimento: true,
   estadoCivil: true,
+  nomeEsposa: true,
   telefone: true,
   dataAdmissao: true,
   createdAt: true,
@@ -33,9 +34,29 @@ const publicSelect = {
   nomeCompleto: true,
   cargo: true,
   ministerio: true,
+  congregacao: true,
+  estadoCivil: true,
+  nomeEsposa: true,
+  dataAdmissao: true,
   status: true,
-  igreja: { select: { nome: true } },
+  createdAt: true,
+  igreja: { select: { nome: true, responsavel: true } },
 } as const;
+
+type MembroPublicRow = {
+  foto: string | null;
+  codigo: string;
+  nomeCompleto: string;
+  cargo: string | null;
+  ministerio: string | null;
+  congregacao: string | null;
+  estadoCivil: EstadoCivilMembro;
+  nomeEsposa: string | null;
+  dataAdmissao: Date | null;
+  status: MembroStatus;
+  createdAt: Date;
+  igreja: { nome: string; responsavel: string };
+};
 
 export function generateCarteirinhaToken(): string {
   return randomUUID();
@@ -73,6 +94,7 @@ function mapToMemberCardData(membro: {
   status: MembroStatus;
   nascimento: Date;
   estadoCivil: EstadoCivilMembro;
+  nomeEsposa: string | null;
   telefone: string;
   dataAdmissao: Date | null;
   createdAt: Date;
@@ -95,6 +117,7 @@ function mapToMemberCardData(membro: {
       : null,
     nascimento: formatDateBR(membro.nascimento),
     estadoCivil: ESTADO_CIVIL_LABEL[membro.estadoCivil],
+    nomeEsposa: membro.nomeEsposa?.trim() || null,
     telefone: membro.telefone,
     emitidaEm: formatDateBR(emitida),
     validaAte: formatDateBR(valida),
@@ -125,26 +148,65 @@ export async function getCarteirinhaByMembroId(
   return getMemberCardByMembroId(membroId);
 }
 
-export async function getMembroPublicoByCodigo(
-  codigo: string
-): Promise<MembroPublicoVerificacao | null> {
-  const membro = await prisma.membro.findUnique({
-    where: { codigo },
-    select: publicSelect,
-  });
-
-  if (!membro) return null;
+function mapMembroPublico(membro: MembroPublicRow): MembroPublicoVerificacao {
+  const emitida = membro.createdAt;
+  const valida = addYears(emitida, VALIDADE_ANOS);
 
   return {
     foto: membro.foto,
     codigo: membro.codigo,
     nome: membro.nomeCompleto,
     igreja: membro.igreja.nome,
+    pastorPresidente: membro.igreja.responsavel,
     cargo: membro.cargo,
     ministerio: membro.ministerio,
+    congregacao: membro.congregacao,
+    estadoCivil: ESTADO_CIVIL_LABEL[membro.estadoCivil],
+    nomeEsposa: membro.nomeEsposa?.trim() || null,
+    dataAdmissao: membro.dataAdmissao
+      ? formatDateBR(membro.dataAdmissao)
+      : null,
+    emitidaEm: formatDateBR(emitida),
+    validaAte: formatDateBR(valida),
     status: membro.status,
     verificadoEm: new Date().toISOString(),
   };
+}
+
+/** Busca membro para página pública: código, token da carteirinha ou id */
+export async function resolveMembroForPublicPage(
+  identifier: string
+): Promise<MembroPublicRow | null> {
+  const key = decodeURIComponent(identifier).trim();
+  if (!key) return null;
+
+  const byCodigo = await prisma.membro.findUnique({
+    where: { codigo: key },
+    select: publicSelect,
+  });
+  if (byCodigo) return byCodigo;
+
+  const byToken = await prisma.membro.findUnique({
+    where: { carteirinhaToken: key },
+    select: publicSelect,
+  });
+  if (byToken) return byToken;
+
+  const byId = await prisma.membro.findUnique({
+    where: { id: key },
+    select: publicSelect,
+  });
+  if (byId) return byId;
+
+  return null;
+}
+
+export async function getMembroPublicoByCodigo(
+  identifier: string
+): Promise<MembroPublicoVerificacao | null> {
+  const membro = await resolveMembroForPublicPage(identifier);
+  if (!membro) return null;
+  return mapMembroPublico(membro);
 }
 
 export async function getCodigoByCarteirinhaToken(
@@ -168,14 +230,5 @@ export async function getCarteirinhaPublica(
 
   if (!membro) return null;
 
-  return {
-    foto: membro.foto,
-    codigo: membro.codigo,
-    nome: membro.nomeCompleto,
-    igreja: membro.igreja.nome,
-    cargo: membro.cargo,
-    ministerio: membro.ministerio,
-    status: membro.status,
-    verificadoEm: new Date().toISOString(),
-  };
+  return mapMembroPublico(membro);
 }

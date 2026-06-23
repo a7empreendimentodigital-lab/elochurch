@@ -6,10 +6,10 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { DespesaForm } from "@/components/financeiro/despesa-form";
 import { Button } from "@/components/ui/button";
 import { periodoPadrao } from "@/services/financeiro.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 
 export default async function NovaDespesaPage() {
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   if (!igrejaId) {
     return (
       <p className="text-sm text-muted-foreground">

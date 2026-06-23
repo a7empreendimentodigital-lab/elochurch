@@ -3,13 +3,13 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { listIgrejas } from "@/services/igrejas.service";
-import { getIgrejaAtivaId } from "@/lib/igreja-context";
+import { resolveIgrejaAtivaId } from "@/lib/igreja-ativa.server";
 import { BemForm } from "@/components/patrimonio/bem-form";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Button } from "@/components/ui/button";
 
 export default async function NovoBemPage() {
-  const igrejaId = await getIgrejaAtivaId();
+  const igrejaId = await resolveIgrejaAtivaId();
   const igrejas = (await listIgrejas().catch(() => [])).map((i) => ({
     id: i.id,
     nome: i.nome,
