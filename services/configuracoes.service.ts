@@ -20,6 +20,17 @@ import { getIgrejaById, listSedes } from "@/services/igrejas.service";
 
 const CONFIG_ID = "default";
 
+type ConfigSistemaPatch = {
+  cores?: Partial<ConfigSistemaDados["cores"]>;
+  assinatura?: Partial<ConfigSistemaDados["assinatura"]>;
+  carteirinha?: Partial<ConfigSistemaDados["carteirinha"]>;
+  ebd?: Partial<ConfigSistemaDados["ebd"]>;
+  financeiro?: Partial<ConfigSistemaDados["financeiro"]>;
+  documentos?: Partial<ConfigSistemaDados["documentos"]>;
+  logoUrl?: string | null;
+  branding?: Partial<ConfigBranding>;
+};
+
 async function readConfigSistemaFromDb(): Promise<ConfigSistemaDados> {
   const row = await prisma.configSistema.findUnique({
     where: { id: CONFIG_ID },
@@ -37,7 +48,7 @@ async function readConfigSistemaFromDb(): Promise<ConfigSistemaDados> {
 
 function mergeConfig(
   current: ConfigSistemaDados,
-  patch: Partial<ConfigSistemaDados>
+  patch: ConfigSistemaPatch
 ): ConfigSistemaDados {
   return {
     cores: { ...current.cores, ...patch.cores },
@@ -59,7 +70,7 @@ export const getConfigSistema = cache(async (): Promise<ConfigSistemaDados> => {
   return readConfigSistemaFromDb();
 });
 
-async function persistConfig(patch: Partial<ConfigSistemaDados>): Promise<void> {
+async function persistConfig(patch: ConfigSistemaPatch): Promise<void> {
   const current = await readConfigSistemaFromDb();
   const merged = mergeConfig(current, patch);
   const dados = JSON.stringify(merged);

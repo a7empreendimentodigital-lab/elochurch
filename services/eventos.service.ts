@@ -8,7 +8,7 @@ import {
 import type { EventoInput } from "@/lib/validations/evento.schema";
 
 export async function listEventos(igrejaId?: string | null) {
-  const id = igrejaId ?? (await getIgrejaAtivaId());
+  const id = igrejaId ?? (await resolveIgrejaAtivaId());
   return prisma.evento.findMany({
     where: id ? { igrejaId: id } : {},
     include: { igreja: { select: { nome: true } } },

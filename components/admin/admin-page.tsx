@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
 
-type AdminPageMaxWidth = "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "wide" | "full";
+type AdminPageMaxWidth = "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "wide" | "full";
 
 const maxWidthClass: Record<AdminPageMaxWidth, string> = {
+  "2xl": "max-w-2xl",
   "3xl": "max-w-3xl",
   "4xl": "max-w-4xl",
   "5xl": "max-w-5xl",

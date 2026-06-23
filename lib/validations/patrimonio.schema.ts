@@ -24,22 +24,22 @@ const categoriaField = z.enum([
 const dataField = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida");
 
 const optionalText = (max: number) =>
-  z.preprocess(
-    (v) => (v === "" || v === undefined ? null : v),
-    z.string().max(max).nullable().optional()
-  );
-
-const patFotoField = z.preprocess(
-  (v) => (v === "" || v === undefined ? null : v),
   z
-    .string()
-    .max(500)
-    .nullable()
-    .optional()
-    .refine((val) => isAllowedPatrimonioFotoPath(val), {
-      message: "Envie a foto pelo botão de upload.",
-    })
-);
+    .union([z.string().max(max), z.literal(""), z.null(), z.undefined()])
+    .transform((v): string | null => {
+      if (v === "" || v === undefined || v === null) return null;
+      return v;
+    });
+
+const patFotoField = z
+  .union([z.string().max(500), z.literal(""), z.null(), z.undefined()])
+  .transform((v): string | null => {
+    if (v === "" || v === undefined || v === null) return null;
+    return v;
+  })
+  .refine((val) => isAllowedPatrimonioFotoPath(val), {
+    message: "Envie a foto pelo botão de upload.",
+  });
 
 export const patBemSchema = z.object({
   nome: z.string().min(2, "Nome muito curto").max(200),
@@ -67,10 +67,12 @@ export const patManutencaoSchema = z.object({
       const n = parseMoneyInput(v);
       return n === 0 ? null : n;
     }),
-  responsavel: z.preprocess(
-    (v) => (v === "" ? null : v),
-    z.string().max(200).nullable().optional()
-  ),
+  responsavel: z
+    .union([z.string().max(200), z.literal(""), z.null(), z.undefined()])
+    .transform((v): string | null => {
+      if (v === "" || v === undefined || v === null) return null;
+      return v;
+    }),
   concluida: z.boolean().default(false),
   proximaData: z.string().optional().nullable(),
 });
@@ -79,24 +81,30 @@ export const patInventarioSchema = z.object({
   igrejaId: z.string().cuid(),
   titulo: z.string().min(2).max(200),
   data: dataField,
-  observacao: z.preprocess(
-    (v) => (v === "" ? null : v),
-    z.string().max(2000).nullable().optional()
-  ),
+  observacao: z
+    .union([z.string().max(2000), z.literal(""), z.null(), z.undefined()])
+    .transform((v): string | null => {
+      if (v === "" || v === undefined || v === null) return null;
+      return v;
+    }),
 });
 
 export const patInventarioItemSchema = z.object({
   inventarioId: z.string().cuid(),
   bemId: z.string().cuid(),
   conferido: z.boolean(),
-  localizacaoEncontrada: z.preprocess(
-    (v) => (v === "" ? null : v),
-    z.string().max(200).nullable().optional()
-  ),
-  observacao: z.preprocess(
-    (v) => (v === "" ? null : v),
-    z.string().max(500).nullable().optional()
-  ),
+  localizacaoEncontrada: z
+    .union([z.string().max(200), z.literal(""), z.null(), z.undefined()])
+    .transform((v): string | null => {
+      if (v === "" || v === undefined || v === null) return null;
+      return v;
+    }),
+  observacao: z
+    .union([z.string().max(500), z.literal(""), z.null(), z.undefined()])
+    .transform((v): string | null => {
+      if (v === "" || v === undefined || v === null) return null;
+      return v;
+    }),
 });
 
 export type PatBemInput = z.input<typeof patBemSchema>;

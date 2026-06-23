@@ -21,10 +21,10 @@ export function DeleteIgrejaButton({
   const router = useRouter();
   const deletePolicy = usePanelDeletePolicy();
   const [open, setOpen] = useState(false);
-
-  if (!deletePolicy.isSedeAuthorized) return null;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  if (!deletePolicy.isSedeAuthorized) return null;
 
   const handleDelete = () => {
     setError(null);

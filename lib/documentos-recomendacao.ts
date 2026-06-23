@@ -8,7 +8,7 @@ import type {
 const CORPO_RECOMENDACAO =
   "Temos o prazer de informá-los que o mesmo (a) goza de perfeita comunhão com esta igreja, portanto nós o recomendamos, a fim de que a recebais no Senhor, como usam fazer os Santos. Nos colocamos a inteira disposição para esclarecer quaisquer dúvidas. Aproveitamos o ensejo para saudar os irmãos com a paz bendita do nosso Senhor e Salvador Jesus Cristo.";
 
-function irmaoRotulo(_sexo: string): string {
+function irmaoRotulo(): string {
   return "Irmão (a)";
 }
 
@@ -33,7 +33,7 @@ export function renderRecomendacaoModelo(
     titulo: "Carta de RECOMENDAÇÃO",
     congregacaoLinha: congregacaoLinha(ctx),
     apresentamos: campos.apresentamos.trim() || "POR ONDE PASSAR",
-    irmaoRotulo: irmaoRotulo(ctx.membro.sexo),
+    irmaoRotulo: irmaoRotulo(),
     nomeMembro: ctx.membro.nomeCompleto.toUpperCase(),
     cargos: campos.cargos.trim() || "Membro",
     corpo: CORPO_RECOMENDACAO,

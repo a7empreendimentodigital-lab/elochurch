@@ -55,7 +55,7 @@ export type RelatorioPatrimonio = {
     codigo: string;
     nome: string;
     categoria: PatrimonioCategoria;
-    localizacao: string;
+    localizacao: string | null;
     valor: number;
     status: PatBemStatus;
     fornecedor: string | null;

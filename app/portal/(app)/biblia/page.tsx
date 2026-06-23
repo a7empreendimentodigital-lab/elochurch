@@ -1,9 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { getBibleUserRef } from "@/lib/bible-user.server";
-import { getBibleDashboardSnippet, getVerseOfDay } from "@/services/bible.service";
+import { getBibleDashboardSnippet } from "@/services/bible.service";
 import { BibleModuleHub } from "@/components/bible/bible-module-hub";
 import { VerseOfDayWidget } from "@/components/bible/verse-of-day-widget";
 import { Button } from "@/components/ui/button";

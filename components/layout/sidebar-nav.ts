@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
@@ -20,7 +21,7 @@ import {
 export interface NavItem {
   title: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   badge?: string;
   exact?: boolean;
 }

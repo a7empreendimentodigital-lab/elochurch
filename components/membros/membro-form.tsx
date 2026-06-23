@@ -105,7 +105,6 @@ export function MembroForm({
     },
   });
 
-  const fotoUrl = form.watch("foto");
   const nome = form.watch("nomeCompleto");
   const estadoCivil = form.watch("estadoCivil");
   const showConjuge = estadoCivil === "CASADO" || estadoCivil === "UNIAO_ESTAVEL";

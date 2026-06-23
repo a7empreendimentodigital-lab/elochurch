@@ -321,7 +321,7 @@ export async function getMainDashboard(
     resumoHoje: {
       presenca: presentes,
       faltas: faltosos,
-      ofertas: financeiro?.entradas ?? ofertasMesAtual,
+      ofertas: financeiro?.ofertas ?? ofertasMesAtual,
       dizimos: financeiro?.dizimos ?? 0,
       despesas: financeiro?.despesas ?? 0,
     },

@@ -21,7 +21,7 @@ export default async function InventarioDetailPage({ params }: PageProps) {
     codigo: item.bem.codigo,
     nome: item.bem.nome,
     categoria: item.bem.categoria,
-    localizacao: item.bem.localizacao,
+    localizacao: item.bem.localizacao ?? "",
     conferido: item.conferido,
     localizacaoEncontrada: item.localizacaoEncontrada ?? "",
     observacao: item.observacao ?? "",

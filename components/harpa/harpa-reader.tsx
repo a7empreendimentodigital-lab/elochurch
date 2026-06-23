@@ -91,7 +91,7 @@ export function HarpaReader({
           onClick={() => {
             startFav(async () => {
               const res = await toggleHarpaFavoriteAction(hymnId);
-              if (res.success) setIsFavorite(res.data.favorited);
+              if (res.success && res.data) setIsFavorite(res.data.favorited);
             });
           }}
           className={cn(isFavorite && "border-foreground/30")}
