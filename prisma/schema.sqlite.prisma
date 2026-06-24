@@ -1,3 +1,7 @@
+// ⚠️ APENAS DESENVOLVIMENTO LOCAL — não usar em produção.
+// Produção: prisma/schema.prisma (provider = mysql)
+// Ativar: npm run db:use:sqlite
+
 generator client {
   provider = "prisma-client-js"
 }

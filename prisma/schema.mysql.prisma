@@ -172,7 +172,7 @@ model Evento {
   id          String   @id @default(cuid())
   igrejaId    String   @map("igreja_id")
   titulo      String  
-  descricao   String? 
+  descricao   String? @db.LongText
   dataInicio  DateTime @map("data_inicio")
   dataFim     DateTime? @map("data_fim")
   local       String? 
@@ -263,7 +263,7 @@ model CultoHino {
   cultoId     String   @map("culto_id")
   numeroHarpa Int      @map("numero_harpa")
   titulo      String
-  observacao  String?
+  observacao  String? @db.Text
   ordem       Int      @default(0)
   harpaHymnId String?  @map("harpa_hymn_id")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -298,7 +298,7 @@ model CultoAviso {
   id          String               @id @default(cuid())
   cultoId     String               @map("culto_id")
   titulo      String
-  descricao   String
+  descricao   String               @db.LongText
   prioridade  CultoAvisoPrioridade @default(MEDIA)
   createdAt   DateTime             @default(now()) @map("created_at")
 
@@ -313,7 +313,7 @@ model CultoPedidoOracao {
   cultoId   String               @map("culto_id")
   membroId  String?              @map("membro_id")
   nome      String
-  pedido    String
+  pedido    String               @db.LongText
   categoria CultoPedidoCategoria @default(OUTRO)
   origem    CultoPedidoOrigem    @default(CENTRAL)
   createdAt DateTime             @default(now()) @map("created_at")
@@ -456,7 +456,7 @@ model EbdChamada {
   registradoPor     EbdRegistradoPor @map("registrado_por")
   professorId       String?          @map("professor_id")
   superintendenteId String?          @map("superintendente_id")
-  observacaoGeral   String?          @map("observacao_geral")
+  observacaoGeral   String?          @map("observacao_geral") @db.Text
 
   classe          EbdClasse           @relation(fields: [classeId], references: [id], onDelete: Cascade)
   professor       EbdProfessor?       @relation("ChamadaProfessor", fields: [professorId], references: [id], onDelete: SetNull)
@@ -479,8 +479,8 @@ model EbdPresencaChamada {
   trouxeBiblia  Boolean  @default(false) @map("trouxe_biblia")
   trouxeRevista Boolean  @default(false) @map("trouxe_revista")
   oferta        Decimal?
-  observacao    String? 
-  justificativa String? 
+  observacao    String? @db.Text
+  justificativa String? @db.Text
 
   chamada EbdChamada @relation(fields: [chamadaId], references: [id], onDelete: Cascade)
   aluno   EbdAluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
@@ -494,7 +494,7 @@ model HistoricoMembro {
   membroId  String        @map("membro_id")
   tipo      HistoricoTipo
   titulo    String       
-  descricao String?      
+  descricao String?      @db.LongText
   data      DateTime      @default(now())
 
   membro Membro @relation(fields: [membroId], references: [id], onDelete: Cascade)
@@ -531,7 +531,7 @@ model FinDizimo {
   valor           Decimal          
   data            DateTime         
   formaPagamento  FinFormaPagamento @map("forma_pagamento")
-  observacao      String?          
+  observacao      String?          @db.Text
 
   igreja Igreja @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
   membro Membro? @relation(fields: [membroId], references: [id], onDelete: SetNull)
@@ -556,7 +556,7 @@ model FinOferta {
   cultoId         String?           @map("culto_id")
   eventoId        String?           @map("evento_id")
   doadorNome      String?           @map("doador_nome")
-  descricao       String?          
+  descricao       String?          @db.Text
 
   igreja Igreja  @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
   membro Membro? @relation(fields: [membroId], references: [id], onDelete: SetNull)
@@ -575,12 +575,12 @@ model FinOferta {
 model FinReceita {
   id              String            @id @default(cuid())
   igrejaId        String            @map("igreja_id")
-  descricao       String           
+  descricao       String            @db.Text
   valor           Decimal          
   data            DateTime         
   formaPagamento  FinFormaPagamento @map("forma_pagamento")
   categoria       String?          
-  observacao      String?          
+  observacao      String?          @db.Text
 
   igreja Igreja @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
 
@@ -595,13 +595,13 @@ model FinReceita {
 model FinDespesa {
   id              String            @id @default(cuid())
   igrejaId        String            @map("igreja_id")
-  descricao       String           
+  descricao       String            @db.Text
   valor           Decimal          
   data            DateTime         
   formaPagamento  FinFormaPagamento @map("forma_pagamento")
   categoria       String?          
   fornecedor      String?          
-  observacao      String?          
+  observacao      String?          @db.Text
 
   igreja Igreja @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
 
@@ -675,7 +675,7 @@ model PatManutencao {
   bemId        String            @map("bem_id")
   data         DateTime         
   tipo         PatManutencaoTipo
-  descricao    String           
+  descricao    String            @db.Text
   custo        Decimal?         
   responsavel  String?          
   concluida    Boolean           @default(false)
@@ -697,7 +697,7 @@ model PatInventario {
   titulo     String             
   data       DateTime           
   status     PatInventarioStatus @default(ABERTO)
-  observacao String?            
+  observacao String?            @db.Text
 
   igreja Igreja              @relation(fields: [igrejaId], references: [id], onDelete: Cascade)
   itens  PatInventarioItem[]
@@ -716,7 +716,7 @@ model PatInventarioItem {
   bemId                String  @map("bem_id")
   conferido            Boolean @default(false)
   localizacaoEncontrada String? @map("localizacao_encontrada")
-  observacao           String?
+  observacao           String? @db.Text
 
   inventario PatInventario @relation(fields: [inventarioId], references: [id], onDelete: Cascade)
   bem        PatBem        @relation(fields: [bemId], references: [id], onDelete: Cascade)
@@ -803,7 +803,7 @@ model BibleVerse {
   bookId      String @map("book_id")
   chapterId   String @map("chapter_id")
   verseNumber Int    @map("verse_number")
-  content     String
+  content     String @db.LongText
 
   book      BibleBook         @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapter   BibleChapter      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -865,10 +865,10 @@ model BibleReadingPlan {
   id          String               @id @default(cuid())
   slug        String               @unique
   title       String
-  description String
+  description String               @db.LongText
   type        BibleReadingPlanType
   totalDays   Int                  @map("total_days")
-  schedule    String
+  schedule    String               @db.LongText
   createdAt   DateTime             @default(now()) @map("created_at")
 
   progress BibleReadingProgress[]
@@ -897,8 +897,8 @@ model HarpaHymn {
   id        String   @id @default(cuid())
   numero    Int      @unique
   titulo    String
-  coro      String?
-  letra     String
+  coro      String?  @db.LongText
+  letra     String   @db.LongText
   tom       String?
   categoria String?
   createdAt DateTime @default(now()) @map("created_at")
@@ -944,7 +944,7 @@ model HarpaFavorite {
 /// Configurações globais do sistema (cores, EBD, carteirinha, etc.)
 model ConfigSistema {
   id        String   @id @default("default")
-  dados     String
+  dados     String   @db.LongText
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("config_sistema")

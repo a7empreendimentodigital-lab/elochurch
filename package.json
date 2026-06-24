@@ -21,6 +21,7 @@
     "harpa:import": "npx tsx scripts/import-harpa.ts --file harpa_crista_640_hinos.json --full",
     "db:dev:sync": "prisma db push && npm run db:seed",
     "db:dev:reset": "DEV_SEED_RESET=1 npm run db:dev:sync",
+    "reset:system": "tsx scripts/reset-system.ts",
     "db:use:mysql": "cp prisma/schema.mysql.prisma prisma/schema.prisma && prisma generate",
     "db:use:sqlite": "cp prisma/schema.sqlite.prisma prisma/schema.prisma && prisma generate",
     "postinstall": "prisma generate"
