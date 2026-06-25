@@ -3,7 +3,6 @@ import path from "path";
 import { randomUUID } from "crypto";
 import {
   normalizeMembroFotoPath,
-  isAllowedMembroFotoPath,
 } from "@/lib/membros-foto-path";
 
 export {

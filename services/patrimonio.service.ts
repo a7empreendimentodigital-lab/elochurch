@@ -1,3 +1,4 @@
+import { getAppBaseUrl } from "@/lib/app-url";
 import { Prisma, type PatrimonioCategoria } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseDateInput } from "@/lib/dates";
@@ -48,8 +49,7 @@ export async function generatePatrimonioCodigo(): Promise<string> {
 }
 
 export function getPatrimonioPublicUrl(token: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${base.replace(/\/$/, "")}/patrimonio/ativo/${token}`;
+  return `${getAppBaseUrl()}/patrimonio/ativo/${encodeURIComponent(token)}`;
 }
 
 // ─── Bens ───

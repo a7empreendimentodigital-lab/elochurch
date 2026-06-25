@@ -102,7 +102,8 @@ function mapToMemberCardData(
     createdAt: Date;
     igreja: { nome: string; responsavel: string };
   },
-  foto: string | null
+  foto: string | null,
+  qrUrl: string
 ): MemberCardData {
   const emitida = membro.createdAt;
   const valida = addYears(emitida, VALIDADE_ANOS);
@@ -126,7 +127,7 @@ function mapToMemberCardData(
     emitidaEm: formatDateBR(emitida),
     validaAte: formatDateBR(valida),
     pastorPresidente: membro.igreja.responsavel,
-    qrUrl: getMembroPublicUrl(membro.codigo),
+    qrUrl,
     publicPath: getMembroPublicPath(membro.codigo),
   };
 }
@@ -144,7 +145,8 @@ export async function getMemberCardByMembroId(
   if (!membro) return null;
 
   const foto = await resolveMembroFotoForDisplay(membro.foto);
-  return mapToMemberCardData(membro, foto);
+  const qrUrl = await getMembroPublicUrl(membro.codigo);
+  return mapToMemberCardData(membro, foto, qrUrl);
 }
 
 /** @deprecated Use getMemberCardByMembroId */
