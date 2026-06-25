@@ -8,11 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
+function withCacheBuster(url: string, version: number): string {
+  if (!url || version <= 0) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}v=${version}`;
+}
+
 interface BrandingAssetFieldProps {
   assetKey: BrandingAssetKey;
   label: string;
   hint?: string;
   currentUrl: string;
+  previewVersion?: number;
   onUploaded: (url: string) => void;
   onError: (message: string) => void;
 }
@@ -22,6 +29,7 @@ export function BrandingAssetField({
   label,
   hint,
   currentUrl,
+  previewVersion = 0,
   onUploaded,
   onError,
 }: BrandingAssetFieldProps) {
@@ -36,7 +44,7 @@ export function BrandingAssetField({
       {currentUrl && (
         <div className="relative mt-3 h-24 w-full max-w-xs overflow-hidden rounded-lg border border-border bg-background">
           <Image
-            src={currentUrl}
+            src={withCacheBuster(currentUrl, previewVersion)}
             alt={label}
             fill
             className="object-contain p-2"

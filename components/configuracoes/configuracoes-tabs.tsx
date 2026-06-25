@@ -73,6 +73,7 @@ export function ConfiguracoesTabs({ igreja, config }: ConfiguracoesTabsProps) {
   const [anoFiscal, setAnoFiscal] = useState(config.financeiro.anoFiscal);
 
   const [logoUrl, setLogoUrl] = useState(config.logoUrl);
+  const [logoPreviewVersion, setLogoPreviewVersion] = useState(0);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [error, setError] = useState<string | null>(null);
@@ -195,7 +196,11 @@ export function ConfiguracoesTabs({ igreja, config }: ConfiguracoesTabsProps) {
           {logoUrl && (
             <div className="relative mt-4 h-20 w-40">
               <Image
-                src={logoUrl}
+                src={
+                  logoPreviewVersion > 0
+                    ? `${logoUrl}${logoUrl.includes("?") ? "&" : "?"}v=${logoPreviewVersion}`
+                    : logoUrl
+                }
                 alt="Logo da igreja"
                 fill
                 className="object-contain"
@@ -219,6 +224,7 @@ export function ConfiguracoesTabs({ igreja, config }: ConfiguracoesTabsProps) {
                 const result = await saveConfiguracoesLogoAction(fd);
                 if (result.success && result.data) {
                   setLogoUrl(result.data.logoUrl);
+                  setLogoPreviewVersion(Date.now());
                   if (logoInputRef.current) logoInputRef.current.value = "";
                 }
                 finishSave(result.success, result.success ? undefined : result.error);

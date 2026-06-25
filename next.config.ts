@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/uploads/:path*",
+          destination: "/api/files/uploads/:path*",
+        },
+      ],
+    };
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "4mb",

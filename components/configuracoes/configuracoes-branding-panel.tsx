@@ -45,12 +45,16 @@ export function ConfiguracoesBrandingPanel({
   const [ajudaUrl, setAjudaUrl] = useState(initialBranding.ajudaUrl);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [previewVersions, setPreviewVersions] = useState<
+    Partial<Record<BrandingAssetKey, number>>
+  >({});
 
   const updateAssetUrl = (key: BrandingAssetKey, url: string) => {
     const configKey = brandingConfigKeyForAsset(key);
     const next = { ...branding, [configKey]: url };
     setBranding(next);
     setResolved(resolveBranding(next));
+    setPreviewVersions((prev) => ({ ...prev, [key]: Date.now() }));
     setError(null);
     setSuccess(true);
     router.refresh();
@@ -86,6 +90,7 @@ export function ConfiguracoesBrandingPanel({
                     : "PNG ou WebP com fundo transparente."
               }
               currentUrl={ASSET_URL_GETTERS[key](resolved)}
+              previewVersion={previewVersions[key] ?? 0}
               onUploaded={(url) => updateAssetUrl(key, url)}
               onError={(msg) => {
                 setSuccess(false);

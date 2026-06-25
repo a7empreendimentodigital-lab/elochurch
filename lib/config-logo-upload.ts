@@ -1,8 +1,5 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
+import { writePublicUploadFile } from "@/lib/public-uploads.server";
 import { inferImageExtension, isAllowedImageMime } from "@/lib/upload-image";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "logo");
 const MAX_BYTES = 2 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/png",
@@ -28,12 +25,12 @@ export async function saveLogoFile(file: File): Promise<string> {
     throw new Error("Arquivo muito grande (máx. 2 MB).");
   }
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-
   const ext = inferImageExtension(file, ALLOWED_EXT);
   const filename = `logo-${Date.now()}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(UPLOAD_DIR, filename), bytes);
+  if (bytes.length === 0) {
+    throw new Error("Arquivo vazio.");
+  }
 
-  return `/uploads/logo/${filename}`;
+  return writePublicUploadFile("logo", filename, bytes);
 }

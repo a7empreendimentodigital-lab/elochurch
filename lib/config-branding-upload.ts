@@ -1,10 +1,7 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { BRANDING_FILE_PREFIX } from "@/lib/branding-assets";
+import { writePublicUploadFile } from "@/lib/public-uploads.server";
 import type { BrandingAssetKey } from "@/lib/types/branding";
 import { inferImageExtension, isAllowedImageMime } from "@/lib/upload-image";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "branding");
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "image/png",
@@ -32,12 +29,12 @@ export async function saveBrandingAssetFile(
     throw new Error("Arquivo muito grande (máx. 5 MB).");
   }
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-
   const ext = inferImageExtension(file, ALLOWED_EXT);
   const filename = `${BRANDING_FILE_PREFIX[key]}-${Date.now()}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(UPLOAD_DIR, filename), bytes);
+  if (bytes.length === 0) {
+    throw new Error("Arquivo vazio.");
+  }
 
-  return `/uploads/branding/${filename}`;
+  return writePublicUploadFile("branding", filename, bytes);
 }
