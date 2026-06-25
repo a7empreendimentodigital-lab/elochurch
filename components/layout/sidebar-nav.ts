@@ -52,3 +52,11 @@ export function isNavActive(pathname: string, item: NavItem): boolean {
   if (pathname === item.href) return true;
   return pathname.startsWith(`${item.href}/`);
 }
+
+export function filterNavItemsByModules(
+  items: NavItem[],
+  allowedModules: readonly AdminModuleId[]
+): NavItem[] {
+  const allowed = new Set(allowedModules);
+  return items.filter((item) => allowed.has(item.module));
+}

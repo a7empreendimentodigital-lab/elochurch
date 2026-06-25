@@ -12,7 +12,7 @@ import {
 import { getResolvedBranding } from "@/lib/branding.server";
 import {
   canAccessConfiguracoes,
-  getNavItemsForPerfil,
+  getAllowedModulesForPerfil,
   getSessionAdminPerfil,
 } from "@/lib/admin-permissions.server";
 import { AdminShell } from "@/components/layout/admin-shell";
@@ -40,7 +40,7 @@ export async function AdminShellWithIgreja({
       getSessionAdminPerfil(),
     ]);
 
-  const navItems = getNavItemsForPerfil(perfil);
+  const allowedModules = getAllowedModulesForPerfil(perfil);
   const showConfiguracoes = canAccessConfiguracoes(perfil);
 
   const canSwitch = canSwitchCongregacao(scope);
@@ -71,7 +71,7 @@ export async function AdminShellWithIgreja({
       logoVertical={branding.sidebarLogoCollapsed}
       suporteUrl={branding.suporteUrl}
       ajudaUrl={branding.ajudaUrl}
-      navItems={navItems}
+      navAllowedModules={allowedModules}
       showConfiguracoes={showConfiguracoes}
     >
       <IgrejaAtivaCookieSync igrejaId={igrejaAtivaId} persisted={persisted} />

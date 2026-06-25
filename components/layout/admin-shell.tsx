@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import type { NavItem } from "@/components/layout/sidebar-nav";
+import type { AdminModuleId } from "@/lib/admin-permissions";
+import {
+  defaultNavItems,
+  filterNavItemsByModules,
+  type NavItem,
+} from "@/components/layout/sidebar-nav";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { Header } from "@/components/layout/header";
@@ -25,7 +30,7 @@ interface AdminShellProps {
   logoVertical?: string;
   suporteUrl?: string;
   ajudaUrl?: string;
-  navItems?: NavItem[];
+  navAllowedModules?: AdminModuleId[];
   showConfiguracoes?: boolean;
 }
 
@@ -43,12 +48,16 @@ export function AdminShell({
   logoVertical,
   suporteUrl = "",
   ajudaUrl = "",
-  navItems,
+  navAllowedModules,
   showConfiguracoes = false,
 }: AdminShellProps) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const navItems: NavItem[] = navAllowedModules
+    ? filterNavItemsByModules(defaultNavItems, navAllowedModules)
+    : defaultNavItems;
 
   useEffect(() => {
     setMobileNavOpen(false);

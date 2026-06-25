@@ -10,10 +10,6 @@ import {
   isAdminPerfil,
   type AdminModuleId,
 } from "@/lib/admin-permissions";
-import {
-  defaultNavItems,
-  type NavItem,
-} from "@/components/layout/sidebar-nav";
 
 export async function getSessionAdminPerfil(): Promise<AdminPerfil | null> {
   const session = await getServerSession(authOptions);
@@ -22,19 +18,11 @@ export async function getSessionAdminPerfil(): Promise<AdminPerfil | null> {
   return perfil;
 }
 
-export function filterNavItemsByPerfil(
-  items: NavItem[],
+/** Módulos permitidos (serializável servidor → cliente). */
+export function getAllowedModulesForPerfil(
   perfil: AdminPerfil | string | null | undefined
-): NavItem[] {
-  return items.filter(
-    (item) => item.module && adminPerfilHasModule(perfil, item.module)
-  );
-}
-
-export function getNavItemsForPerfil(
-  perfil: AdminPerfil | string | null | undefined
-): NavItem[] {
-  return filterNavItemsByPerfil(defaultNavItems, perfil);
+): AdminModuleId[] {
+  return [...getAdminPerfilAccess(perfil).modules];
 }
 
 export function canAccessConfiguracoes(
