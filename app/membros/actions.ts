@@ -31,6 +31,8 @@ export async function createMembroAction(
     const membro = await createMembro(parsed.data);
     await setIgrejaAtivaId(membro.igrejaId);
     revalidatePath("/membros");
+    revalidatePath(`/membros/${membro.id}`);
+    revalidatePath(`/membros/${membro.id}/carteirinha`);
     return { success: true, data: { id: membro.id } };
   } catch (e) {
     return {
@@ -63,6 +65,8 @@ export async function updateMembroAction(
     revalidatePath("/membros");
     revalidatePath(`/membros/${idParsed.data}`);
     revalidatePath(`/membros/${idParsed.data}/editar`);
+    revalidatePath(`/membros/${idParsed.data}/carteirinha`);
+    revalidatePath("/carteirinhas");
     return { success: true };
   } catch (e) {
     return {

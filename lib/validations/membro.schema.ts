@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidCpf, stripCpf } from "@/lib/cpf";
+import { normalizeMembroFotoPath } from "@/lib/membros-foto-path";
 import { BR_ESTADOS } from "@/types/igreja";
 
 const telefoneRegex = /^[\d\s()+-]{10,20}$/;
@@ -26,7 +27,7 @@ const fotoUploadSchema = z
   .max(500)
   .optional()
   .nullable()
-  .transform((v) => (v && v.trim() !== "" ? v.trim() : null))
+  .transform((v) => normalizeMembroFotoPath(v))
   .refine((v) => v === null || !/^https?:\/\//i.test(v), {
     message: "Não use link de imagem. Envie o arquivo pelo upload.",
   })

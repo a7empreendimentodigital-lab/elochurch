@@ -205,7 +205,13 @@ export function MembroForm({
                 render={({ field }) => (
                   <MembroFotoUpload
                     value={field.value ?? null}
-                    onChange={field.onChange}
+                    onChange={(url) => {
+                      field.onChange(url);
+                      form.setValue("foto", url, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    }}
                     nome={nome}
                     disabled={pending}
                     error={form.formState.errors.foto?.message}

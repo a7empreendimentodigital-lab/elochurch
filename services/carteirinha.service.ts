@@ -3,6 +3,7 @@ import type { EstadoCivilMembro, MembroStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMembroPublicPath, getMembroPublicUrl } from "@/lib/app-url";
 import { formatDateBR } from "@/lib/dates";
+import { resolveMembroFotoForDisplay } from "@/lib/membros-upload";
 import { ESTADO_CIVIL_LABEL } from "@/types/membro";
 import type {
   MemberCardData,
@@ -84,27 +85,30 @@ function addYears(date: Date, years: number): Date {
   return d;
 }
 
-function mapToMemberCardData(membro: {
-  foto: string | null;
-  codigo: string;
-  nomeCompleto: string;
-  cargo: string | null;
-  ministerio: string | null;
-  congregacao: string | null;
-  status: MembroStatus;
-  nascimento: Date;
-  estadoCivil: EstadoCivilMembro;
-  nomeEsposa: string | null;
-  telefone: string;
-  dataAdmissao: Date | null;
-  createdAt: Date;
-  igreja: { nome: string; responsavel: string };
-}): MemberCardData {
+function mapToMemberCardData(
+  membro: {
+    foto: string | null;
+    codigo: string;
+    nomeCompleto: string;
+    cargo: string | null;
+    ministerio: string | null;
+    congregacao: string | null;
+    status: MembroStatus;
+    nascimento: Date;
+    estadoCivil: EstadoCivilMembro;
+    nomeEsposa: string | null;
+    telefone: string;
+    dataAdmissao: Date | null;
+    createdAt: Date;
+    igreja: { nome: string; responsavel: string };
+  },
+  foto: string | null
+): MemberCardData {
   const emitida = membro.createdAt;
   const valida = addYears(emitida, VALIDADE_ANOS);
 
   return {
-    foto: membro.foto,
+    foto,
     codigo: membro.codigo,
     nome: membro.nomeCompleto,
     status: membro.status,
@@ -138,7 +142,9 @@ export async function getMemberCardByMembroId(
   });
 
   if (!membro) return null;
-  return mapToMemberCardData(membro);
+
+  const foto = await resolveMembroFotoForDisplay(membro.foto);
+  return mapToMemberCardData(membro, foto);
 }
 
 /** @deprecated Use getMemberCardByMembroId */
@@ -148,12 +154,15 @@ export async function getCarteirinhaByMembroId(
   return getMemberCardByMembroId(membroId);
 }
 
-function mapMembroPublico(membro: MembroPublicRow): MembroPublicoVerificacao {
+function mapMembroPublico(
+  membro: MembroPublicRow,
+  foto: string | null
+): MembroPublicoVerificacao {
   const emitida = membro.createdAt;
   const valida = addYears(emitida, VALIDADE_ANOS);
 
   return {
-    foto: membro.foto,
+    foto,
     codigo: membro.codigo,
     nome: membro.nomeCompleto,
     igreja: membro.igreja.nome,
@@ -206,7 +215,8 @@ export async function getMembroPublicoByCodigo(
 ): Promise<MembroPublicoVerificacao | null> {
   const membro = await resolveMembroForPublicPage(identifier);
   if (!membro) return null;
-  return mapMembroPublico(membro);
+  const foto = await resolveMembroFotoForDisplay(membro.foto);
+  return mapMembroPublico(membro, foto);
 }
 
 export async function getCodigoByCarteirinhaToken(
@@ -230,5 +240,6 @@ export async function getCarteirinhaPublica(
 
   if (!membro) return null;
 
-  return mapMembroPublico(membro);
+  const foto = await resolveMembroFotoForDisplay(membro.foto);
+  return mapMembroPublico(membro, foto);
 }

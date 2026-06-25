@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin-igreja-scope.server";
 import type { MembroComIgreja } from "@/types/membro";
 import type { MembroFormInput } from "@/lib/validations/membro.schema";
+import { normalizeMembroFotoPath } from "@/lib/membros-foto-path";
 
 const includeIgreja = {
   igreja: { select: { id: true, nome: true } },
@@ -34,7 +35,7 @@ export async function generateMembroCodigo(): Promise<string> {
 
 function mapFormToData(input: MembroFormInput) {
   return {
-    foto: input.foto,
+    foto: normalizeMembroFotoPath(input.foto),
     nomeCompleto: input.nomeCompleto.trim(),
     cpf: stripCpf(input.cpf),
     rg: input.rg,
@@ -175,10 +176,7 @@ export async function deleteMembro(id: string) {
 export function membroToFormInput(membro: MembroComIgreja): MembroFormInput {
   return {
     igrejaId: membro.igrejaId,
-    foto:
-      membro.foto && membro.foto.startsWith("/uploads/membros/")
-        ? membro.foto
-        : null,
+    foto: normalizeMembroFotoPath(membro.foto),
     nomeCompleto: membro.nomeCompleto,
     cpf: formatCpf(membro.cpf),
     rg: membro.rg,

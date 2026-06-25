@@ -4,7 +4,18 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "4mb",
+    },
+  },
   headers: async () => [
+    {
+      source: "/uploads/membros/:path*",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=86400, must-revalidate" },
+      ],
+    },
     {
       source: "/sw.js",
       headers: [

@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { Camera, Loader2, Trash2 } from "lucide-react";
 import { uploadMembroFotoAction } from "@/app/membros/upload-actions";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -58,16 +58,27 @@ export function MembroFotoUpload({
     <div className="space-y-3">
       <Label>Foto do membro</Label>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Avatar className="h-24 w-24 border-2 border-gold/30">
-          {value && <AvatarImage src={value} alt={nome || "Foto"} className="object-cover" />}
-          <AvatarFallback className="bg-gold/10 text-xl text-gold">{initials}</AvatarFallback>
-        </Avatar>
+        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-gold/30 bg-muted/30">
+          {value ? (
+            <Image
+              src={value}
+              alt={nome || "Foto"}
+              fill
+              className="object-cover"
+              unoptimized={value.startsWith("/uploads/")}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gold/10 text-xl font-semibold text-gold">
+              {initials}
+            </div>
+          )}
+        </div>
 
         <div className="flex flex-col gap-2">
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
             className="hidden"
             disabled={disabled || uploading}
             onChange={(e) => handleFile(e.target.files?.[0])}
@@ -101,7 +112,7 @@ export function MembroFotoUpload({
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            JPG, PNG, WebP ou GIF — até 3 MB. Não use link de imagem.
+            JPG, PNG, WebP ou GIF — até 3 MB. A foto é salva ao clicar em &quot;Salvar membro&quot;.
           </p>
         </div>
       </div>
