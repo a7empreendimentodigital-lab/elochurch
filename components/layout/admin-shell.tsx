@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { NavItem } from "@/components/layout/sidebar-nav";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { Header } from "@/components/layout/header";
@@ -24,6 +25,8 @@ interface AdminShellProps {
   logoVertical?: string;
   suporteUrl?: string;
   ajudaUrl?: string;
+  navItems?: NavItem[];
+  showConfiguracoes?: boolean;
 }
 
 export function AdminShell({
@@ -40,6 +43,8 @@ export function AdminShell({
   logoVertical,
   suporteUrl = "",
   ajudaUrl = "",
+  navItems,
+  showConfiguracoes = false,
 }: AdminShellProps) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -55,6 +60,8 @@ export function AdminShell({
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
         logoHorizontal={logoHorizontal}
+        items={navItems}
+        showConfiguracoes={showConfiguracoes}
       />
 
       <Sidebar
@@ -62,6 +69,8 @@ export function AdminShell({
         onToggle={() => setSidebarCollapsed((c) => !c)}
         logoHorizontal={logoHorizontal}
         logoVertical={logoVertical}
+        items={navItems}
+        showConfiguracoes={showConfiguracoes}
       />
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -74,6 +83,7 @@ export function AdminShell({
           agenda={agenda}
           unreadCount={unreadCount}
           onMenuClick={() => setMobileNavOpen(true)}
+          showConfiguracoes={showConfiguracoes}
         />
         <main
           className={cn(

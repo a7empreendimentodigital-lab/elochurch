@@ -1,33 +1,61 @@
 import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import type { AdminPerfil } from "@prisma/client";
 import {
   isAdminPath,
   isPortalPath,
   isPublicPath,
 } from "@/lib/admin-routes";
+import {
+  adminPerfilCanAccessPath,
+  getAdminHomeRoute,
+  isAdminPerfil,
+} from "@/lib/admin-permissions";
 
-export default withAuth({
-  callbacks: {
-    authorized: ({ token, req }) => {
-      const path = req.nextUrl.pathname;
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const path = req.nextUrl.pathname;
 
-      if (isPublicPath(path)) return true;
-
-      if (path === "/login") return true;
-
-      if (isPortalPath(path)) {
-        if (path === "/portal/login") return true;
-        return token?.role === "membro" && !!token?.membroId;
+    if (
+      token?.role === "admin" &&
+      token.perfil &&
+      isAdminPerfil(token.perfil) &&
+      isAdminPath(path) &&
+      !adminPerfilCanAccessPath(token.perfil, path)
+    ) {
+      const home = getAdminHomeRoute(token.perfil as AdminPerfil);
+      if (path !== home && !path.startsWith(`${home}/`)) {
+        return NextResponse.redirect(new URL(home, req.url));
       }
+    }
 
-      if (isAdminPath(path)) {
-        return token?.role === "admin" && !!token?.adminId;
-      }
-
-      return true;
-    },
+    return NextResponse.next();
   },
-  pages: { signIn: "/login" },
-});
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const path = req.nextUrl.pathname;
+
+        if (isPublicPath(path)) return true;
+
+        if (path === "/login") return true;
+
+        if (isPortalPath(path)) {
+          if (path === "/portal/login") return true;
+          return token?.role === "membro" && !!token?.membroId;
+        }
+
+        if (isAdminPath(path)) {
+          return token?.role === "admin" && !!token?.adminId;
+        }
+
+        return true;
+      },
+    },
+    pages: { signIn: "/login" },
+  }
+);
 
 export const config = {
   matcher: [

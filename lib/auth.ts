@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { getAdminHomeRoute } from "@/lib/admin-permissions";
 import { authenticatePortalMembro } from "@/services/portal-auth.service";
 import { authenticateAdmin } from "@/services/admin-auth.service";
 
@@ -70,6 +71,8 @@ export const authOptions: NextAuthOptions = {
           token.role = "admin";
           token.adminId = user.adminId as string;
           token.perfil = user.perfil as string;
+          token.igrejaId = user.igrejaId ?? null;
+          token.homeRoute = getAdminHomeRoute(user.perfil as string);
         }
         if ("membroId" in user && user.membroId) {
           token.role = "membro";
@@ -85,6 +88,7 @@ export const authOptions: NextAuthOptions = {
         session.user.membroId = token.membroId as string | undefined;
         session.user.perfil = token.perfil as string | undefined;
         session.user.igrejaId = token.igrejaId as string | null | undefined;
+        session.user.homeRoute = token.homeRoute as string | undefined;
       }
       return session;
     },

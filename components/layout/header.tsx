@@ -50,6 +50,7 @@ interface HeaderProps {
   agenda?: HeaderAgendaItem[];
   unreadCount?: number;
   onMenuClick?: () => void;
+  showConfiguracoes?: boolean;
 }
 
 export function Header({
@@ -62,6 +63,7 @@ export function Header({
   agenda = [],
   unreadCount = 0,
   onMenuClick,
+  showConfiguracoes = false,
 }: HeaderProps) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -225,9 +227,11 @@ export function Header({
             Site da igreja (ADCEC)
           </a>
         </DropdownMenuItem>
+        {showConfiguracoes && (
         <DropdownMenuItem asChild>
           <Link href="/configuracoes">Configurações e contatos</Link>
         </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/membros">Enviar informações aos membros</Link>
         </DropdownMenuItem>
@@ -272,9 +276,11 @@ export function Header({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {showConfiguracoes && (
         <DropdownMenuItem asChild>
           <Link href="/configuracoes">Configurações</Link>
         </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:text-destructive"

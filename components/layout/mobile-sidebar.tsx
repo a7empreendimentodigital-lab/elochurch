@@ -16,6 +16,7 @@ interface MobileSidebarProps {
   onClose: () => void;
   items?: NavItem[];
   logoHorizontal?: string;
+  showConfiguracoes?: boolean;
 }
 
 export function MobileSidebar({
@@ -23,6 +24,7 @@ export function MobileSidebar({
   onClose,
   items = defaultNavItems,
   logoHorizontal,
+  showConfiguracoes = false,
 }: MobileSidebarProps) {
   const pathname = usePathname();
 
@@ -86,6 +88,7 @@ export function MobileSidebar({
           })}
         </nav>
         <div className="border-t border-white/10 p-3">
+          {showConfiguracoes && (
           <Link
             href="/configuracoes"
             onClick={onClose}
@@ -105,6 +108,7 @@ export function MobileSidebar({
             />
             Configurações
           </Link>
+          )}
           <Link
             href="/portal/login"
             onClick={onClose}

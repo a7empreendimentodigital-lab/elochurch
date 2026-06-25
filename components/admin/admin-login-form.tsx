@@ -41,8 +41,13 @@ export function AdminLoginForm({ bgImage }: AdminLoginFormProps) {
       return;
     }
 
-    const callback = searchParams.get("callbackUrl") ?? "/dashboard";
-    router.push(callback);
+    const sessionRes = await fetch("/api/auth/session");
+    const session = (await sessionRes.json()) as {
+      user?: { homeRoute?: string };
+    };
+    const callback = searchParams.get("callbackUrl");
+    const home = session.user?.homeRoute ?? "/dashboard";
+    router.push(callback ?? home);
     router.refresh();
   };
 

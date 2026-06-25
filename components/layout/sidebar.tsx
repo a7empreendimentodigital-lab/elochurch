@@ -26,6 +26,7 @@ interface SidebarProps {
   className?: string;
   logoHorizontal?: string;
   logoVertical?: string;
+  showConfiguracoes?: boolean;
 }
 
 export function Sidebar({
@@ -35,6 +36,7 @@ export function Sidebar({
   className,
   logoHorizontal,
   logoVertical,
+  showConfiguracoes = false,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -126,6 +128,7 @@ export function Sidebar({
 
       <Separator className="bg-white/10" />
 
+      {showConfiguracoes && (
       <div className={cn("p-3", collapsed && "flex justify-center")}>
         {collapsed ? (
           <Tooltip delayDuration={0}>
@@ -162,6 +165,7 @@ export function Sidebar({
           </Link>
         )}
       </div>
+      )}
 
       {onToggle && (
         <Button

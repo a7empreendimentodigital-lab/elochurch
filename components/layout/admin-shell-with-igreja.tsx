@@ -10,6 +10,11 @@ import {
   getAdminIgrejaScope,
 } from "@/lib/admin-igreja-scope.server";
 import { getResolvedBranding } from "@/lib/branding.server";
+import {
+  canAccessConfiguracoes,
+  getNavItemsForPerfil,
+  getSessionAdminPerfil,
+} from "@/lib/admin-permissions.server";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { FilialDeleteNotice } from "@/components/admin/filial-delete-notice";
 import { IgrejaAtivaCookieSync } from "@/components/layout/igreja-ativa-cookie-sync";
@@ -24,7 +29,7 @@ export async function AdminShellWithIgreja({
   children,
   className,
 }: AdminShellWithIgrejaProps) {
-  const [cookieId, scope, igrejaAtivaId, igrejas, deletePolicy, branding] =
+  const [cookieId, scope, igrejaAtivaId, igrejas, deletePolicy, branding, perfil] =
     await Promise.all([
       getIgrejaAtivaId(),
       getAdminIgrejaScope(),
@@ -32,7 +37,11 @@ export async function AdminShellWithIgreja({
       listIgrejasAtivasOptions(),
       getPanelDeletePolicy(),
       getResolvedBranding(),
+      getSessionAdminPerfil(),
     ]);
+
+  const navItems = getNavItemsForPerfil(perfil);
+  const showConfiguracoes = canAccessConfiguracoes(perfil);
 
   const canSwitch = canSwitchCongregacao(scope);
   const lockedLabel =
@@ -62,6 +71,8 @@ export async function AdminShellWithIgreja({
       logoVertical={branding.sidebarLogoCollapsed}
       suporteUrl={branding.suporteUrl}
       ajudaUrl={branding.ajudaUrl}
+      navItems={navItems}
+      showConfiguracoes={showConfiguracoes}
     >
       <IgrejaAtivaCookieSync igrejaId={igrejaAtivaId} persisted={persisted} />
       <PanelDeletePolicyProvider policy={deletePolicy}>

@@ -20,6 +20,7 @@ declare module "next-auth" {
       membroId?: string;
       perfil?: string;
       igrejaId?: string | null;
+      homeRoute?: string;
     };
   }
 }
@@ -31,5 +32,6 @@ declare module "next-auth/jwt" {
     role?: "admin" | "membro";
     perfil?: string;
     igrejaId?: string | null;
+    homeRoute?: string;
   }
 }
