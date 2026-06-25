@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getResolvedBranding } from "@/lib/branding.server";
+import { buildManifestFaviconIcons } from "@/lib/favicon-metadata";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const branding = await getResolvedBranding();
@@ -18,20 +19,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     lang: "pt-BR",
     dir: "ltr",
     categories: ["productivity", "lifestyle"],
-    icons: [
-      {
-        src: branding.faviconUrl,
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any",
-      },
-      {
-        src: branding.faviconUrl,
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
-    ],
+    icons: buildManifestFaviconIcons(branding.faviconUrl),
     screenshots: [
       {
         src: "/brand/splash.png",

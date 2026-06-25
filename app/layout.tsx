@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
 import { getResolvedBranding } from "@/lib/branding.server";
+import { buildFaviconMetadataIcons } from "@/lib/favicon-metadata";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,11 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
     formatDetection: {
       telephone: false,
     },
-    icons: {
-      icon: [{ url: favicon, sizes: "512x512", type: "image/png" }],
-      apple: [{ url: favicon, sizes: "512x512", type: "image/png" }],
-      shortcut: [{ url: favicon }],
-    },
+    icons: buildFaviconMetadataIcons(favicon),
     other: {
       "mobile-web-app-capable": "yes",
     },

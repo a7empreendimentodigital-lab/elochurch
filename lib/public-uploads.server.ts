@@ -1,5 +1,6 @@
 import { access, mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { IMAGE_EXT_TO_MIME } from "@/lib/upload-image";
 
 const ALLOWED_UPLOAD_PREFIXES = [
   "branding",
@@ -9,16 +10,6 @@ const ALLOWED_UPLOAD_PREFIXES = [
 ] as const;
 
 export type UploadPrefix = (typeof ALLOWED_UPLOAD_PREFIXES)[number];
-
-const EXT_TO_MIME: Record<string, string> = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".webp": "image/webp",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml",
-  ".ico": "image/x-icon",
-};
 
 /** Diretório físico `public/uploads` (ou UPLOADS_ROOT na VPS). */
 export function getUploadsRootDir(): string {
@@ -62,8 +53,8 @@ export function publicUploadPathToAbsolute(
 }
 
 export function contentTypeForUploadFile(filePath: string): string {
-  const ext = path.extname(filePath).toLowerCase();
-  return EXT_TO_MIME[ext] ?? "application/octet-stream";
+  const ext = path.extname(filePath).toLowerCase().slice(1);
+  return IMAGE_EXT_TO_MIME[ext] ?? "application/octet-stream";
 }
 
 export async function uploadFileExists(

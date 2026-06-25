@@ -4,6 +4,7 @@ import { useRef, useTransition } from "react";
 import Image from "next/image";
 import { saveConfiguracoesBrandingAssetAction } from "@/app/configuracoes/actions";
 import type { BrandingAssetKey } from "@/lib/types/branding";
+import { FAVICON_FILE_ACCEPT } from "@/lib/upload-image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -79,7 +80,11 @@ export function BrandingAssetField({
         <Input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,.jpg,.jpeg,.png,.webp,.svg,.ico"
+          accept={
+            assetKey === "favicon"
+              ? FAVICON_FILE_ACCEPT
+              : "image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,.jpg,.jpeg,.png,.webp,.svg,.ico"
+          }
           className="max-w-sm flex-1"
         />
         <Button type="submit" variant="outline" size="sm" disabled={pending}>

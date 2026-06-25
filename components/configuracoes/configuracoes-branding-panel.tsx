@@ -84,7 +84,7 @@ export function ConfiguracoesBrandingPanel({
                 key === "documentosLogo"
                   ? "PNG ou WebP. Usada no cabeçalho das fichas e documentos emitidos."
                   : key === "favicon"
-                  ? "PNG ou ICO, quadrado. Recomendado 512×512."
+                  ? "ICO, PNG, JPG, JPEG, WebP, AVIF, GIF ou SVG. Recomendado 512×512."
                   : key.startsWith("bg")
                     ? "WebP ou PNG, paisagem. Recomendado 1920×1080."
                     : "PNG ou WebP com fundo transparente."
