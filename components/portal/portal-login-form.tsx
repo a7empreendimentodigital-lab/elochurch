@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { LoginSplitLayout } from "@/components/auth/login-split-layout";
+import { toSafeCallbackPath } from "@/lib/safe-callback-url";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,8 +42,8 @@ export function PortalLoginForm({ bgImage }: PortalLoginFormProps) {
       return;
     }
 
-    const callback = searchParams.get("callbackUrl") ?? "/portal";
-    router.push(callback);
+    const target = toSafeCallbackPath(searchParams.get("callbackUrl"), "/portal");
+    router.push(target);
     router.refresh();
   };
 

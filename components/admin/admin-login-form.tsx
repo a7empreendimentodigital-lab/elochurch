@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { LoginSplitLayout } from "@/components/auth/login-split-layout";
+import { toSafeCallbackPath } from "@/lib/safe-callback-url";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,9 @@ export function AdminLoginForm({ bgImage }: AdminLoginFormProps) {
     const session = (await sessionRes.json()) as {
       user?: { homeRoute?: string };
     };
-    const callback = searchParams.get("callbackUrl");
     const home = session.user?.homeRoute ?? "/dashboard";
-    router.push(callback ?? home);
+    const target = toSafeCallbackPath(searchParams.get("callbackUrl"), home);
+    router.push(target);
     router.refresh();
   };
 
