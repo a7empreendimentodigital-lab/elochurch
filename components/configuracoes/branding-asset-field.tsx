@@ -71,7 +71,7 @@ export function BrandingAssetField({
         <Input
           ref={inputRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon,.jpg,.jpeg,.png,.webp,.svg,.ico"
           className="max-w-sm flex-1"
         />
         <Button type="submit" variant="outline" size="sm" disabled={pending}>

@@ -86,15 +86,52 @@ export const getConfigSistema = cache(async (): Promise<ConfigSistemaDados> => {
   return readConfigSistemaFromDb();
 });
 
-async function persistConfig(patch: ConfigSistemaPatch): Promise<void> {
-  const current = await readConfigSistemaFromDb();
-  const merged = mergeConfig(current, patch);
-  const dados = JSON.stringify(merged);
+function isConfigDadosTooLongError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2000"
+  );
+}
+
+/** Corrige coluna `dados` quando o banco ainda usa VARCHAR(191) em MySQL. */
+async function ensureConfigSistemaDadosLongText(): Promise<void> {
+  await prisma.$executeRawUnsafe(
+    "ALTER TABLE `config_sistema` MODIFY COLUMN `dados` LONGTEXT NOT NULL"
+  );
+}
+
+async function upsertConfigSistema(dados: string): Promise<void> {
   await prisma.configSistema.upsert({
     where: { id: CONFIG_ID },
     create: { id: CONFIG_ID, dados },
     update: { dados },
   });
+}
+
+async function persistConfig(patch: ConfigSistemaPatch): Promise<void> {
+  const current = await readConfigSistemaFromDb();
+  const merged = mergeConfig(current, patch);
+  const dados = JSON.stringify(merged);
+
+  try {
+    await upsertConfigSistema(dados);
+  } catch (error) {
+    if (!isConfigDadosTooLongError(error)) {
+      throw error;
+    }
+
+    try {
+      await ensureConfigSistemaDadosLongText();
+      await upsertConfigSistema(dados);
+    } catch (retryError) {
+      if (isConfigDadosTooLongError(retryError)) {
+        throw new Error(
+          "Configurações excedem o limite do banco. Execute na VPS: npx prisma db push"
+        );
+      }
+      throw retryError;
+    }
+  }
 }
 
 export async function resolveIgrejaParaConfiguracoes(): Promise<ConfiguracoesIgrejaInitial | null> {

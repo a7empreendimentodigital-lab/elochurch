@@ -62,6 +62,14 @@ export function ConfiguracoesBrandingPanel({
         title="Aparência e marca"
         description="Personalize logos de documentos, fundos, favicon, barra lateral e links do rodapé."
       >
+        {error && (
+          <p className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        {success && !error && (
+          <p className="mb-4 text-sm text-emerald-600">Imagem salva com sucesso.</p>
+        )}
         <div className="grid gap-4 lg:grid-cols-2">
           {ASSET_KEYS.map((key) => (
             <BrandingAssetField

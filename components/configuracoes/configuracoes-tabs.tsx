@@ -228,7 +228,7 @@ export function ConfiguracoesTabs({ igreja, config }: ConfiguracoesTabsProps) {
             <Input
               ref={logoInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg"
               className="max-w-md"
             />
             <SaveFeedback error={error} success={success} />
